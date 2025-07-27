@@ -35,7 +35,9 @@ const upload = multer({
 
 // ElevenLabs API configuration
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
-const HAS_API_KEY = ELEVENLABS_API_KEY && ELEVENLABS_API_KEY !== 'your_elevenlabs_api_key_here';
+const HAS_API_KEY = Boolean(
+  ELEVENLABS_API_KEY && ELEVENLABS_API_KEY !== 'your_elevenlabs_api_key_here'
+);
 
 // Initialize ElevenLabs client
 let elevenlabs = null;
@@ -51,7 +53,9 @@ if (HAS_API_KEY) {
 
 // OpenAI API configuration
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const HAS_OPENAI_KEY = OPENAI_API_KEY && OPENAI_API_KEY !== 'your_openai_api_key_here';
+const HAS_OPENAI_KEY = Boolean(
+  OPENAI_API_KEY && OPENAI_API_KEY !== 'your_openai_api_key_here'
+);
 
 // Initialize OpenAI client
 let openai = null;
