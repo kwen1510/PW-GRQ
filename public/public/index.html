@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Interview Transcription">
+    <meta name="theme-color" content="#1e40af">
+    <title>Interview Transcription App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-microphone"></i> Interview Transcription</h1>
+            <p class="subtitle">Record and transcribe group interviews with ease</p>
+            <div class="header-nav">
+                <a href="/history.html" class="nav-link">
+                    <i class="fas fa-history"></i> History
+                </a>
+            </div>
+        </header>
+
+        <main class="main">
+            <!-- Setup Section -->
+            <section class="setup-section">
+                <div class="card">
+                    <h2><i class="fas fa-cog"></i> Setup Interview</h2>
+                    
+                    <div class="form-group">
+                        <label for="questions">Interview Questions</label>
+                        <div class="questions-container">
+                            <div class="question-input-group">
+                                <div class="question-header">
+                                    <span class="question-number">Question 1</span>
+                                    <button type="button" class="remove-question-btn" onclick="removeQuestion(0)" style="display: none;">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <textarea class="question-input" placeholder="Enter your first interview question here..." rows="2"></textarea>
+                            </div>
+                        </div>
+                        <div class="questions-controls">
+                            <button type="button" id="addQuestionBtn" class="btn btn-secondary">
+                                <i class="fas fa-plus"></i> Add Another Question
+                            </button>
+                            <div class="questions-info">
+                                <span id="questionCount">1 question</span>
+                                <small>You can also add questions during the interview</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Student Names</label>
+                        <div class="student-inputs">
+                            <input type="text" id="student1" placeholder="Student 1 name" class="student-input">
+                            <input type="text" id="student2" placeholder="Student 2 name" class="student-input">
+                            <input type="text" id="student3" placeholder="Student 3 name" class="student-input">
+                            <input type="text" id="student4" placeholder="Student 4 name" class="student-input">
+                            <input type="text" id="student5" placeholder="Student 5 name" class="student-input">
+                        </div>
+                    </div>
+
+                    <button id="startSetup" class="btn btn-primary">
+                        <i class="fas fa-play"></i> Start Interview
+                    </button>
+                </div>
+            </section>
+
+            <!-- Interview Section -->
+            <section class="interview-section" style="display: none;">
+                <div class="card">
+                    <div class="interview-header">
+                        <div class="question-display">
+                            <h3><i class="fas fa-question-circle"></i> Question</h3>
+                            <p id="displayQuestion"></p>
+                        </div>
+                        
+                        <div class="timer-controls">
+                            <div class="timer">
+                                <i class="fas fa-clock"></i>
+                                <span id="timer">00:00</span>
+                            </div>
+                            <!-- Record button removed - recording starts automatically -->
+                            <button id="recordBtn" class="btn btn-record" style="display: none;">
+                                <i class="fas fa-microphone"></i> Start Recording
+                            </button>
+                            <button id="endSessionBtn" class="btn btn-stop">
+                                <i class="fas fa-stop-circle"></i> End Session
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Student Selection -->
+                    <div class="students-container">
+                        <h3><i class="fas fa-users"></i> Select Current Speaker</h3>
+                        <div class="student-boxes" id="studentBoxes">
+                            <!-- Student boxes will be generated here -->
+                        </div>
+                        <div class="no-speaker">
+                            <button id="noSpeaker" class="btn btn-secondary active">
+                                <i class="fas fa-user-slash"></i> No Speaker Selected
+                            </button>
+                        </div>
+                        
+                        <!-- Session Navigation -->
+                        <div class="session-navigation" id="sessionNavigation" style="display: none;">
+                            <button id="nextQuestionBtn" class="btn btn-primary" title="Continue to next question">
+                                <i class="fas fa-arrow-right"></i> Next Question
+                            </button>
+                            <p class="navigation-hint">Continue recording with the next question, or click "End Session" above when finished.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transcription Display -->
+                <div class="card transcription-card">
+                    <h3><i class="fas fa-file-alt"></i> Live Transcription</h3>
+                    <div class="session-progress" id="sessionProgressDisplay" style="display: none;">
+                        <div class="progress-info">
+                            <span id="currentQuestionDisplay">Question 1</span>
+                            <span id="totalQuestionsDisplay">of 3</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                    </div>
+                    <div class="transcription-container" id="transcriptionContainer">
+                        <p class="no-transcription">Transcription will appear here when recording starts...</p>
+                    </div>
+                </div>
+                <!-- Session Completion Section (moved outside interview section) -->
+            </section>
+
+            <!-- Session Completion Section (moved outside interview section) -->
+            <div class="session-completion-section" id="sessionCompletionSection" style="display: none;">
+                <div class="card">
+                    <h3><i class="fas fa-flag-checkered"></i> Session Complete - Review & Analyze</h3>
+                    
+                    <div class="session-summary">
+                        <p><strong>Session Summary:</strong> <span id="sessionSummaryText"></span></p>
+                        <p><strong>Total Recording Time:</strong> <span id="sessionDuration">00:00</span></p>
+                    </div>
+
+                    <div class="questions-review">
+                        <h4><i class="fas fa-edit"></i> Review & Edit Questions</h4>
+                        <p class="review-hint">Review and edit your questions before running the analysis. This helps ensure accurate context for the AI analysis.</p>
+                        <div id="questionsReviewContainer">
+                            <!-- Questions will be populated here -->
+                        </div>
+                    </div>
+
+                    <div class="session-analysis">
+                        <h4><i class="fas fa-brain"></i> Session Analysis</h4>
+                        <div class="analysis-prompt-section">
+                            <label for="sessionAnalysisPrompt">
+                                <i class="fas fa-edit"></i> Analysis Prompt for Entire Session
+                                <span class="prompt-hint">This prompt will analyze the complete session across all questions</span>
+                            </label>
+                            <textarea 
+                                id="sessionAnalysisPrompt" 
+                                rows="15"
+                            >You are an AI feedback assistant reviewing a group oral response transcript. Your task is to provide individualised feedback for each speaker, plus a group-level summary.
+
+**CRITICAL INSTRUCTION: ONLY USE ACTUAL QUOTES FROM THE TRANSCRIPT**
+- You must ONLY reference and quote content that actually appears in the provided transcript
+- DO NOT create, imagine, or paraphrase responses that weren't actually said
+- If you reference a student's response, use their EXACT words in quotes
+- If students didn't address certain aspects, state this clearly rather than inventing content
+
+For each speaker:
+- Evaluate their collaborative communication and argumentation (PEEL)
+- Provide specific, student-friendly feedback
+- Offer a model improved snippet to illustrate a stronger version of part of their response
+
+For the final speaker:
+- Additionally assess how well they summarised group points and/or rounded off the response
+
+✅ Evaluation Criteria:
+
+🟢 Collaborative Communication
+• Used collaborative signposting? Quote actual phrases used
+• Referred to teammates' ideas? Reference specific instances
+• Promoted shared ownership? Show real examples
+
+🔵 Quality of Argument (PEEL) - Using Actual Content
+• Point – Clear and relevant? Quote actual points made
+• Explanation – Reasoning developed? Show actual examples
+• Evidence/Example – Support provided? Quote specific evidence
+• Link – Tied back to the big idea? Show how they connected
+
+✔ Acceptable content includes:
+• Problem severity/significance/trends
+• Target group needs
+• Causes: perception / motivation / engagement
+• Gaps in current measures
+• Proposed solution (who, what, where, why)
+• Evaluation: strengths, limitations
+• Personal experiences
+
+🟣 Final Speaker – Summary/Closure (Extra Criteria)
+• Did they accurately summarise key ideas raised by teammates? (quote)
+• Did they emphasise the most important/salient points? (reference)
+• Did they link back to the original question effectively? (show how)
+• Was the language clear, concise, and purpose-driven? (examples)
+
+Example Output Format:
+
+🔹 Speaker A Feedback
+"Building on B's point about [quote their point], you explained [quote their explanation]. Your personal example [quote example] added authenticity. However, you could improve the link back to [specific aspect]."
+
+✏️ Suggested Improvement:
+"Building on B's point about low awareness, I believe many youths lack motivation due to a disconnect with their everyday needs. For example, when I mentored peers, they often said these topics felt too abstract. This gap highlights why our project must be grounded in daily relevance."
+
+🔹 Speaker B Feedback
+"Your point about [quote point] was insightful. However, you missed the chance to show collaboration by referencing A's point. You explained [quote explanation] well but could deepen your argument with research-based evidence."
+
+✏️ Suggested Improvement:
+"To extend A's point, while awareness is low, one key reason is that existing talks in schools don't match students' interests. A 2023 survey from REACH shows that only 1 in 3 students found school programmes meaningful. This gap in relevance is what we're addressing."
+
+🔹 Final Speaker Feedback – Summary & Closure
+"You summarized by noting [quote their summary]. While you captured [quote successful parts], you missed [note specific missed points]. Your conclusion [quote conclusion] could more effectively link to the question."
+
+✏️ Suggested Improvement:
+"To summarise, A highlighted [key point], B discussed [key point], and C proposed [key point]. Bringing these together, our group believes that [clear conclusion linking to question]."
+
+🟢 Group Summary: Collaborative Skills
+[Reference actual collaborative phrases used and transitions made]
+
+🔵 Group Summary: Quality of Argument
+[Note strongest PEEL elements with examples and areas for improvement]
+
+🟣 Final Speaker Summary Check
+[Evaluate summary effectiveness with specific quotes]
+
+Remember: Always use actual quotes from the transcript to support your feedback.</textarea>
+                        </div>
+
+                        <div class="session-analysis-controls">
+                            <button id="runSessionAnalysisBtn" class="analysis-btn">
+                                <i class="fas fa-magic"></i> Analyze Complete Session
+                            </button>
+                            <div class="session-analysis-status" id="sessionAnalysisStatus"></div>
+                        </div>
+
+                        <div class="session-analysis-results" id="sessionAnalysisResults" style="display: none;">
+                            <h4><i class="fas fa-lightbulb"></i> Session Analysis Results</h4>
+                            <div class="analysis-content" id="sessionAnalysisContent"></div>
+                            <div class="analysis-actions">
+                                <button id="copySessionAnalysisBtn" class="copy-btn">
+                                    <i class="fas fa-copy"></i> Copy Analysis
+                                </button>
+                                <button id="downloadSessionWordBtn" class="copy-btn word-btn">
+                                    <i class="fas fa-file-alt"></i> Download RTF
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Section -->
+            <div class="card export-section">
+                <h3><i class="fas fa-download"></i> Export & Save Data</h3>
+                <div class="session-info" id="sessionInfo" style="display: none;">
+                    <p><strong>Session Progress:</strong> <span id="sessionProgress">Question 1 of 1</span></p>
+                    <p><strong>Total Questions:</strong> <span id="totalQuestions">1</span></p>
+                </div>
+                <div class="session-status" id="sessionStatus" style="display: none;">
+                    <div class="status-indicator">
+                        <i class="fas fa-circle" id="sessionStatusIcon"></i>
+                        <span id="sessionStatusText">Session Active</span>
+                    </div>
+                </div>
+                <div class="export-buttons">
+                    <button id="exportCSV" class="btn btn-secondary" style="display: none;">
+                        <i class="fas fa-file-csv"></i> Download CSV
+                    </button>
+                    <button id="exportJSON" class="btn btn-secondary" style="display: none;">
+                        <i class="fas fa-file-code"></i> Download JSON
+                    </button>
+                    <button id="resetInterview" class="btn btn-outline">
+                        <i class="fas fa-refresh"></i> New Session
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Status Messages -->
+        <div id="statusMessage" class="status-message"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html> 

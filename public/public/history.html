@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Interview History">
+    <meta name="theme-color" content="#1e40af">
+    <title>Interview History - Interview Transcription App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-history"></i> Interview History</h1>
+            <p class="subtitle">View and manage your saved interview sessions</p>
+            <div class="header-nav">
+                <a href="/" class="nav-link">
+                    <i class="fas fa-arrow-left"></i> Back to App
+                </a>
+            </div>
+        </header>
+
+        <main class="main">
+            <div class="card info-card">
+                <div class="info-header">
+                    <i class="fas fa-info-circle"></i>
+                    <h3>About Local Storage</h3>
+                </div>
+                <div class="info-content">
+                    <p><strong>🔒 Privacy:</strong> All interview data is stored locally on this device only. Your data never leaves your computer.</p>
+                    <p><strong>📱 Device Specific:</strong> Data saved on this device won't be accessible from other devices or browsers.</p>
+                    <p><strong>⚠️ Backup Recommended:</strong> Consider exporting important interviews as CSV/JSON files for backup.</p>
+                    <p><strong>🧹 Browser Data:</strong> Clearing browser data will remove all saved interviews permanently.</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="history-controls">
+                    <h2><i class="fas fa-archive"></i> Saved Interviews</h2>
+                    <div class="controls-right">
+                        <div class="interview-count" id="interviewCount">0 interviews</div>
+                        <button id="clearAllBtn" class="btn btn-danger">
+                            <i class="fas fa-trash-alt"></i> Clear All
+                        </button>
+                    </div>
+                </div>
+
+                <div class="history-container" id="historyContainer">
+                    <!-- Interview history will be populated here -->
+                </div>
+
+                <div class="empty-state" id="emptyState" style="display: none;">
+                    <div class="empty-content">
+                        <i class="fas fa-folder-open"></i>
+                        <h3>No Interviews Saved</h3>
+                        <p>Start your first interview to see it appear here.</p>
+                        <a href="/" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Create Interview
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Status Messages -->
+        <div id="statusMessage" class="status-message"></div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <h3><i class="fas fa-exclamation-triangle"></i> Confirm Delete</h3>
+            <p>Are you sure you want to delete this interview? This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button id="confirmDeleteBtn" class="btn btn-danger">Delete</button>
+                <button id="cancelDeleteBtn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="history.js"></script>
+</body>
+</html> 
