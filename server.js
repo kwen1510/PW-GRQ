@@ -11,6 +11,17 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Add cache-busting headers for development
+app.use((req, res, next) => {
+    if (req.url.endsWith('.html') || req.url.endsWith('.js') || req.url.endsWith('.css') || req.url === '/') {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+    }
+    next();
+});
+
 app.use(express.static('public'));
 
 // Configure multer for handling audio files
@@ -159,7 +170,7 @@ ${conversation}
 Please provide a comprehensive analysis based on the prompt above.`;
 
         const completion = await openai.chat.completions.create({
-          model: "gpt-4-turbo-preview", // Using GPT-4 Turbo (closest to GPT-4.1)
+          model: "gpt-4.1-mini", // Using GPT-4.1-mini for efficient analysis
           messages: [
             {
               role: "system",
@@ -181,7 +192,7 @@ Please provide a comprehensive analysis based on the prompt above.`;
         res.json({ 
           success: true, 
           analysis: analysis,
-          model: "gpt-4-turbo-preview",
+          model: "gpt-4.1-mini",
           timestamp: new Date().toISOString()
         });
 

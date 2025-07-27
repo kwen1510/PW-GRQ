@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interview Transcription App</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="container">
@@ -16,9 +16,6 @@
             <div class="header-nav">
                 <a href="/history.html" class="nav-link">
                     <i class="fas fa-history"></i> History
-                </a>
-                <a href="/test.html" class="nav-link">
-                    <i class="fas fa-flask"></i> Test Recording
                 </a>
             </div>
         </header>
@@ -30,8 +27,27 @@
                     <h2><i class="fas fa-cog"></i> Setup Interview</h2>
                     
                     <div class="form-group">
-                        <label for="question">Interview Question</label>
-                        <textarea id="question" placeholder="Enter your interview question here..." rows="3"></textarea>
+                        <label for="questions">Interview Questions</label>
+                        <div class="questions-container">
+                            <div class="question-input-group">
+                                <div class="question-header">
+                                    <span class="question-number">Question 1</span>
+                                    <button type="button" class="remove-question-btn" onclick="removeQuestion(0)" style="display: none;">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <textarea class="question-input" placeholder="Enter your first interview question here..." rows="2"></textarea>
+                            </div>
+                        </div>
+                        <div class="questions-controls">
+                            <button type="button" id="addQuestionBtn" class="btn btn-secondary">
+                                <i class="fas fa-plus"></i> Add Another Question
+                            </button>
+                            <div class="questions-info">
+                                <span id="questionCount">1 question</span>
+                                <small>You can also add questions during the interview</small>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -65,11 +81,12 @@
                                 <i class="fas fa-clock"></i>
                                 <span id="timer">00:00</span>
                             </div>
-                            <button id="recordBtn" class="btn btn-record">
+                            <!-- Record button removed - recording starts automatically -->
+                            <button id="recordBtn" class="btn btn-record" style="display: none;">
                                 <i class="fas fa-microphone"></i> Start Recording
                             </button>
-                            <button id="stopBtn" class="btn btn-stop" style="display: none;">
-                                <i class="fas fa-stop"></i> Stop Recording
+                            <button id="endSessionBtn" class="btn btn-stop">
+                                <i class="fas fa-stop-circle"></i> End Session
                             </button>
                         </div>
                     </div>
@@ -85,207 +102,170 @@
                                 <i class="fas fa-user-slash"></i> No Speaker Selected
                             </button>
                         </div>
+                        
+                        <!-- Session Navigation -->
+                        <div class="session-navigation" id="sessionNavigation" style="display: none;">
+                            <button id="nextQuestionBtn" class="btn btn-primary" title="Continue to next question">
+                                <i class="fas fa-arrow-right"></i> Next Question
+                            </button>
+                            <p class="navigation-hint">Continue recording with the next question, or click "End Session" above when finished.</p>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Transcription Display -->
                 <div class="card transcription-card">
                     <h3><i class="fas fa-file-alt"></i> Live Transcription</h3>
+                    <div class="session-progress" id="sessionProgressDisplay" style="display: none;">
+                        <div class="progress-info">
+                            <span id="currentQuestionDisplay">Question 1</span>
+                            <span id="totalQuestionsDisplay">of 3</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                    </div>
                     <div class="transcription-container" id="transcriptionContainer">
                         <p class="no-transcription">Transcription will appear here when recording starts...</p>
                     </div>
                 </div>
+                <!-- Session Completion Section (moved outside interview section) -->
+            </section>
 
-                <!-- Post-Processing Analysis Section -->
-                <div class="post-processing-section" id="postProcessingSection" style="display: none;">
-                    <div class="post-processing-header" onclick="togglePostProcessing()">
-                        <h3><i class="fas fa-brain"></i> Post-Processing Analysis</h3>
-                        <i class="fas fa-chevron-down" id="postProcessingChevron"></i>
-                    </div>
+            <!-- Session Completion Section (moved outside interview section) -->
+            <div class="session-completion-section" id="sessionCompletionSection" style="display: none;">
+                <div class="card">
+                    <h3><i class="fas fa-flag-checkered"></i> Session Complete - Review & Analyze</h3>
                     
-                    <div class="post-processing-content" id="postProcessingContent" style="display: none;">
-                        <div class="prompt-section">
-                            <label for="analysisPrompt">
-                                <i class="fas fa-edit"></i> Analysis Prompt
-                                <span class="prompt-hint">Customize how GPT-4.1 should analyze the conversation</span>
+                    <div class="session-summary">
+                        <p><strong>Session Summary:</strong> <span id="sessionSummaryText"></span></p>
+                        <p><strong>Total Recording Time:</strong> <span id="sessionDuration">00:00</span></p>
+                    </div>
+
+                    <div class="questions-review">
+                        <h4><i class="fas fa-edit"></i> Review & Edit Questions</h4>
+                        <p class="review-hint">Review and edit your questions before running the analysis. This helps ensure accurate context for the AI analysis.</p>
+                        <div id="questionsReviewContainer">
+                            <!-- Questions will be populated here -->
+                        </div>
+                    </div>
+
+                    <div class="session-analysis">
+                        <h4><i class="fas fa-brain"></i> Session Analysis</h4>
+                        <div class="analysis-prompt-section">
+                            <label for="sessionAnalysisPrompt">
+                                <i class="fas fa-edit"></i> Analysis Prompt for Entire Session
+                                <span class="prompt-hint">This prompt will analyze the complete session across all questions</span>
                             </label>
                             <textarea 
-                                id="analysisPrompt" 
-                                placeholder="You are an AI feedback assistant reviewing a group oral response transcript. Your task is to provide individualised feedback for each speaker, plus a group-level summary. 
+                                id="sessionAnalysisPrompt" 
+                                rows="15"
+                            >You are an AI feedback assistant reviewing a single question from a group oral response session.
 
-                                For each speaker: 
-                                
-                                Evaluate their collaborative communication and argumentation (PEEL). 
-                                
-                                Provide specific, student-friendly feedback. 
-                                
-                                Offer a model improved snippet to illustrate a stronger version of part of their response. 
-                                
-                                For the final speaker: 
-                                
-                                Additionally assess how well they summarised group points and/or rounded off the response by linking back to the question. 
-                                
-                                Tone: Encouraging, specific, and clear. 
-                                
-                                 
-                                
-                                📥 Input Format Expected 
-                                
-                                Transcript with speakers labeled using their actual names: 
-                                 
-                                [Student Name]: [response]   
-                                
-                                [Student Name]: [response]   
-                                
-                                [Student Name]: [response]   
-                                
-                                ... 
-                                
-                                [Final Student Name]: [response] 
-                                
-                                ✅ Evaluation Criteria 
-                                
-                                🟢 Collaborative Communication 
-                                
-                                Used collaborative signposting? 
-                                
-                                Referred to teammates’ ideas? 
-                                
-                                Promoted shared ownership? 
-                                
-                                🔵 Quality of Argument (PEEL) 
-                                
-                                Point – Clear and relevant? 
-                                
-                                Explanation – Reasoning developed? 
-                                
-                                Evidence/Example – Support provided? 
-                                
-                                Link – Tied back to the big idea? 
-                                
-                                ✔ Acceptable content includes: 
-                                
-                                Problem severity/significance/trends 
-                                
-                                Target group needs 
-                                
-                                Causes: perception / motivation / engagement 
-                                
-                                Gaps in current measures 
-                                
-                                Proposed solution (who, what, where, why) 
-                                
-                                Evaluation: strengths, limitations 
-                                
-                                Personal experiences 
-                                
-                                🟣 Final Speaker – Summary/Closure (Extra Criteria) 
-                                
-                                Did they accurately summarise key ideas raised by teammates? 
-                                
-                                Did they emphasise the most important/salient points? 
-                                
-                                Did they link back to the original question effectively? 
-                                
-                                Was the language clear, concise, and purpose-driven? 
-                                
-                                ################# Sample Output################### 
-                                 
-                                🔹 [Student Name] Feedback 
-                                
-                                You began your response by building on [Other Student]'s point, which showed good collaboration. Your explanation of the root cause (motivation) was clear, and your personal example added authenticity. However, you could improve the link back to the project's overall aim. 
-                                
-                                ✏️ Suggested Improvement:  
-                                
-                                "Building on [Other Student]'s point about low awareness, I believe many youths lack motivation due to a disconnect with their everyday needs. For example, when I mentored peers, they often said these topics felt too abstract. This gap highlights why our project must be grounded in daily relevance." 
-                                
-                                 
-                                
-                                🔹 [Student Name] Feedback 
-                                
-                                Your point about the failure of current measures was insightful. However, you missed the chance to show collaboration by referencing [Previous Student]'s point. You explained the problem's scale well but could deepen your argument with research-based evidence. 
-                                
-                                ✏️ Suggested Improvement:  
-                                
-                                "To extend [Previous Student]'s point, while awareness is low, one key reason is that existing talks in schools don't match students' interests. A 2023 survey from REACH shows that only 1 in 3 students found school programmes meaningful. This gap in relevance is what we're addressing." 
-                                
-                                 
-                                
-                                🔹 [Final Student Name] Feedback – Summary & Closure 
-                                
-                                You did well to try and round off the discussion by summarising your teammates' points and returning to the question. However, your summary was slightly unbalanced—some speakers' ideas (e.g., the evaluation of the solution) were left out, while others were repeated. Also, your closing link to the question could be clearer and more conclusive. 
-                                
-                                ✏️ Suggested Improvement:  
-                                
-                                "To summarise, [Student A] highlighted the lack of motivation among youths, [Student B] discussed how current school measures fall short, and [Student C] proposed a tailored peer-mentorship model. Bringing these together, our group believes that empowering relatable student voices is key to solving the disengagement issue. This directly answers the question of how we can tackle the root causes of youth apathy." 
-                                
-                                 
-                                
-                                🟢 Group Summary: Collaborative Skills 
-                                
-                                Your group worked cohesively and used collaborative phrases to build on each other’s points. There was good participation across members, though a few transitions could be smoother with clearer signposting. 
-                                
-                                🔵 Group Summary: Quality of Argument 
-                                
-                                The use of PEEL was consistent across most speakers, and your arguments were well-grounded in both personal and research-based examples. Next time, aim for stronger linking back to the main question and consider exploring more varied content areas (e.g., solution evaluation or stakeholder engagement). 
-                                
-                                🟣 Final Speaker Summary Check 
-                                
-                                Your attempt to tie the group’s ideas together was commendable. Be more selective in highlighting only the most significant points and ensure your conclusion clearly links the entire response back to the question posed. 
-                                
-                                🌟 You’re progressing well—keep sharpening your teamwork and argument depth! 
+**ANALYSIS FOCUS:**
+Provide focused feedback on how well the group addressed this specific question, including:
 
-**Important Context:**
-- This transcript comes from speech-to-text, so names/words may be imperfectly transcribed
-- Student names are: [STUDENT_NAMES_PLACEHOLDER]
-- Question discussed: [QUESTION_PLACEHOLDER] 
-- Use the provided names to correct any misidentified speakers or name references
+🔹 **Individual Student Responses:**
+For each student who responded to this question:
+- How well they addressed the specific question asked
+- Quality of their argument structure (PEEL: Point, Explanation, Evidence, Link)
+- Use of collaborative communication (building on others' ideas)
+- Relevance and depth of their response to this particular question
+- Specific suggestions for improvement with example improved responses
 
-Please provide specific examples from the conversation and actionable insights for improving collaborative discussion skills."
-                            ></textarea>
+🔹 **Group Dynamics for This Question:**
+- How well the group collectively addressed the question
+- Quality of collaboration and idea-building for this specific topic
+- Whether the discussion stayed on-topic and relevant
+- How ideas developed and connected throughout responses to this question
+
+🔹 **Question-Specific Assessment:**
+- Did the group fully address what was asked?
+- Were responses appropriate to the question's complexity and scope?
+- What aspects of the question were well-covered vs. missed?
+- How could the group better approach this type of question in future?
+
+**EVALUATION CRITERIA:**
+
+🟢 Collaborative Communication
+• Used collaborative signposting phrases?
+• Referred to and built upon teammates' ideas?
+• Promoted shared ownership of the discussion?
+• Maintained respectful and inclusive dialogue?
+
+🔵 Quality of Argument (PEEL)
+• Point – Clear, relevant, and directly addresses the question?
+• Explanation – Reasoning well-developed and logical?
+• Evidence/Example – Appropriate support provided for the specific question?
+• Link – Tied back to the question and broader discussion themes?
+
+🟣 Question Responsiveness
+• Directly addressed what was asked in each question?
+• Demonstrated understanding of the question's intent?
+• Provided depth appropriate to the question's complexity?
+• Connected responses meaningfully across different questions?
+
+**CONTENT QUALITY INDICATORS:**
+✔ Acceptable content includes:
+• Direct responses to the questions asked
+• Problem identification, analysis, and proposed solutions
+• Target group needs and stakeholder considerations
+• Evidence-based reasoning and personal experiences
+• Critical evaluation of ideas and approaches
+• Creative and practical suggestions relevant to each question
+
+**OUTPUT FORMAT:**
+Provide clear, student-friendly feedback with specific examples and actionable suggestions for improvement.</textarea>
                         </div>
 
-                        <div class="analysis-controls">
-                            <button id="runAnalysisBtn" class="analysis-btn">
-                                <i class="fas fa-magic"></i> Run GPT-4.1 Analysis
+                        <div class="session-analysis-controls">
+                            <button id="runSessionAnalysisBtn" class="analysis-btn">
+                                <i class="fas fa-magic"></i> Analyze Complete Session
                             </button>
-                            <div class="analysis-status" id="analysisStatus"></div>
+                            <div class="session-analysis-status" id="sessionAnalysisStatus"></div>
                         </div>
 
-                        <div class="analysis-results" id="analysisResults" style="display: none;">
-                            <h4><i class="fas fa-lightbulb"></i> Analysis Results</h4>
-                            <div class="analysis-content" id="analysisContent"></div>
+                        <div class="session-analysis-results" id="sessionAnalysisResults" style="display: none;">
+                            <h4><i class="fas fa-lightbulb"></i> Session Analysis Results</h4>
+                            <div class="analysis-content" id="sessionAnalysisContent"></div>
                             <div class="analysis-actions">
-                                <button id="copyAnalysisBtn" class="copy-btn">
+                                <button id="copySessionAnalysisBtn" class="copy-btn">
                                     <i class="fas fa-copy"></i> Copy Analysis
                                 </button>
-                                <button id="downloadWordBtn" class="copy-btn word-btn">
-                                    <i class="fas fa-file-word"></i> Download Word
+                                <button id="downloadSessionWordBtn" class="copy-btn word-btn">
+                                    <i class="fas fa-file-alt"></i> Download RTF
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Export Section -->
-                <div class="card export-section">
-                    <h3><i class="fas fa-download"></i> Export & Save Data</h3>
-                    <div class="export-buttons">
-                        <button id="saveInterviewBtn" class="save-interview-btn">
-                            <i class="fas fa-save"></i> Save Interview
-                        </button>
-                        <button id="exportCSV" class="btn btn-secondary">
-                            <i class="fas fa-file-csv"></i> Download CSV
-                        </button>
-                        <button id="exportJSON" class="btn btn-secondary">
-                            <i class="fas fa-file-code"></i> Download JSON
-                        </button>
-                        <button id="resetInterview" class="btn btn-outline">
-                            <i class="fas fa-refresh"></i> New Interview
-                        </button>
+            <!-- Export Section -->
+            <div class="card export-section">
+                <h3><i class="fas fa-download"></i> Export & Save Data</h3>
+                <div class="session-info" id="sessionInfo" style="display: none;">
+                    <p><strong>Session Progress:</strong> <span id="sessionProgress">Question 1 of 1</span></p>
+                    <p><strong>Total Questions:</strong> <span id="totalQuestions">1</span></p>
+                </div>
+                <div class="session-status" id="sessionStatus" style="display: none;">
+                    <div class="status-indicator">
+                        <i class="fas fa-circle" id="sessionStatusIcon"></i>
+                        <span id="sessionStatusText">Session Active</span>
                     </div>
                 </div>
-            </section>
+                <div class="export-buttons">
+                    <button id="exportCSV" class="btn btn-secondary" style="display: none;">
+                        <i class="fas fa-file-csv"></i> Download CSV
+                    </button>
+                    <button id="exportJSON" class="btn btn-secondary" style="display: none;">
+                        <i class="fas fa-file-code"></i> Download JSON
+                    </button>
+                    <button id="resetInterview" class="btn btn-outline">
+                        <i class="fas fa-refresh"></i> New Session
+                    </button>
+                </div>
+            </div>
         </main>
 
         <!-- Status Messages -->

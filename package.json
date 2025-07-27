@@ -1,14 +1,11 @@
 {
   "name": "interview-transcription-app",
   "version": "1.0.0",
-  "description": "An interview transcription app with ElevenLabs integration and GPT analysis",
+  "description": "An interview transcription app with ElevenLabs integration",
   "main": "server.js",
-  "engines": {
-    "node": ">=18.0.0"
-  },
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "nodemon server.js"
   },
   "dependencies": {
     "@elevenlabs/elevenlabs-js": "^2.7.0",
@@ -19,19 +16,14 @@
     "multer": "^1.4.5-lts.1",
     "openai": "^4.104.0"
   },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
   "keywords": [
     "transcription",
     "interview",
-    "elevenlabs",
-    "openai",
-    "gpt",
-    "education",
-    "collaboration"
+    "elevenlabs"
   ],
   "author": "",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "your-github-repo-url"
-  }
-} 
+  "license": "MIT"
+}
