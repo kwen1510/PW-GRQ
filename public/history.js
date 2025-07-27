@@ -992,7 +992,13 @@ class InterviewHistoryManager {
             // Multi-question session prompt
             const questionsList = questions.map((q, i) => `${i + 1}. ${q.question || `Question ${i + 1}`}`).join('\\n');
             
-            return `You are an AI feedback assistant reviewing a complete multi-question group interview session.
+            return `You are an AI feedback assistant reviewing a group oral response transcript. Your task is to provide individualised feedback for each speaker, plus a group-level summary.
+
+**CRITICAL INSTRUCTION: ONLY USE ACTUAL QUOTES FROM THE TRANSCRIPT**
+- You must ONLY reference and quote content that actually appears in the provided transcript
+- DO NOT create, imagine, or paraphrase responses that weren't actually said
+- If you reference a student's response, use their EXACT words in quotes
+- If students didn't address certain aspects, state this clearly rather than inventing content
 
 **SESSION OVERVIEW:**
 - Students: ${studentNames}
@@ -1000,127 +1006,154 @@ class InterviewHistoryManager {
 - Questions Covered:
 ${questionsList}
 
-**COMPREHENSIVE ANALYSIS FOCUS:**
-Provide detailed feedback on the complete session, including:
+For each speaker:
+- Evaluate their collaborative communication and argumentation (PEEL)
+- Provide specific, student-friendly feedback
+- Offer a model improved snippet to illustrate a stronger version of part of their response
 
-🔹 **Individual Student Analysis:**
-For each student across all questions:
-- Overall communication clarity and confidence throughout the session
-- Quality of their argument structure (PEEL: Point, Explanation, Evidence, Link)
-- Use of collaborative communication (building on others' ideas)
-- Consistency and growth across different questions
-- Leadership moments and initiative-taking
-- Listening skills and responsiveness to others
+For the final speaker:
+- Additionally assess how well they summarised group points and/or rounded off the response
 
-🔹 **Group Dynamics Analysis:**
-- How well the group worked together across all questions
-- Quality of collaboration and idea-building throughout the session
-- Turn-taking patterns and inclusive participation
-- How ideas developed and connected across different topics
-- Conflict resolution and consensus building moments
-- Overall group cohesion and collective problem-solving
+✅ Evaluation Criteria:
 
-🔹 **Question-by-Question Assessment:**
-- How well the group addressed each specific question
-- Whether responses were appropriate to each question's complexity
-- Topics that generated the most engagement vs. those that didn't
-- How the group's understanding evolved from question to question
-- Missed opportunities for deeper discussion on specific topics
+🟢 Collaborative Communication
+• Used collaborative signposting? Quote actual phrases used
+• Referred to teammates' ideas? Reference specific instances
+• Promoted shared ownership? Show real examples
 
-🔹 **Session Quality & Learning Outcomes:**
-- Evidence of critical thinking and reasoning development
-- Examples of students challenging each other constructively
-- Moments of genuine learning and insight
-- Areas where the discussion was particularly strong
-- Overall learning progression and engagement patterns
+🔵 Quality of Argument (PEEL) - Using Actual Content
+• Point – Clear and relevant? Quote actual points made
+• Explanation – Reasoning developed? Show actual examples
+• Evidence/Example – Support provided? Quote specific evidence
+• Link – Tied back to the big idea? Show how they connected
 
-**EVALUATION CRITERIA:**
+✔ Acceptable content includes:
+• Problem severity/significance/trends
+• Target group needs
+• Causes: perception / motivation / engagement
+• Gaps in current measures
+• Proposed solution (who, what, where, why)
+• Evaluation: strengths, limitations
+• Personal experiences
 
-🟢 **Collaborative Communication**
-• Used collaborative signposting phrases across questions?
-• Consistently referred to and built upon teammates' ideas?
-• Promoted shared ownership of discussions?
-• Maintained respectful and inclusive dialogue throughout?
+🟣 Final Speaker – Summary/Closure (Extra Criteria)
+• Did they accurately summarise key ideas raised by teammates? (quote)
+• Did they emphasise the most important/salient points? (reference)
+• Did they link back to the original question effectively? (show how)
+• Was the language clear, concise, and purpose-driven? (examples)
 
-🔵 **Argument Quality (PEEL Structure)**
-• Points were clear, relevant, and directly addressed questions?
-• Explanations were well-developed and logical?
-• Evidence/examples were appropriate for each question type?
-• Links tied back to questions and broader discussion themes?
+Example Output Format:
 
-🟣 **Session Engagement & Growth**
-• Students demonstrated sustained engagement across all questions?
-• Evidence of learning and perspective development?
-• Appropriate depth for each question's complexity?
-• Meaningful connections made between different questions?
+🔹 Speaker A Feedback
+"Building on B's point about [quote their point], you explained [quote their explanation]. Your personal example [quote example] added authenticity. However, you could improve the link back to [specific aspect]."
 
-**OUTPUT FORMAT:**
-Provide comprehensive, student-friendly feedback with specific examples from across the session and actionable recommendations for future group discussions.
+✏️ Suggested Improvement:
+"Building on B's point about low awareness, I believe many youths lack motivation due to a disconnect with their everyday needs. For example, when I mentored peers, they often said these topics felt too abstract. This gap highlights why our project must be grounded in daily relevance."
 
-**IMPORTANT CONTEXT:**
-- This transcript comes from speech-to-text, so names/words may be imperfectly transcribed
-- Use the provided student names to correct any misidentified speakers
-- Consider the complete session arc when evaluating individual and group performance
-- Focus on both individual growth and collective learning outcomes`;
+🔹 Speaker B Feedback
+"Your point about [quote point] was insightful. However, you missed the chance to show collaboration by referencing A's point. You explained [quote explanation] well but could deepen your argument with research-based evidence."
+
+✏️ Suggested Improvement:
+"To extend A's point, while awareness is low, one key reason is that existing talks in schools don't match students' interests. A 2023 survey from REACH shows that only 1 in 3 students found school programmes meaningful. This gap in relevance is what we're addressing."
+
+🔹 Final Speaker Feedback – Summary & Closure
+"You summarized by noting [quote their summary]. While you captured [quote successful parts], you missed [note specific missed points]. Your conclusion [quote conclusion] could more effectively link to the question."
+
+✏️ Suggested Improvement:
+"To summarise, A highlighted [key point], B discussed [key point], and C proposed [key point]. Bringing these together, our group believes that [clear conclusion linking to question]."
+
+🟢 Group Summary: Collaborative Skills
+[Reference actual collaborative phrases used and transitions made]
+
+🔵 Group Summary: Quality of Argument
+[Note strongest PEEL elements with examples and areas for improvement]
+
+🟣 Final Speaker Summary Check
+[Evaluate summary effectiveness with specific quotes]
+
+Remember: Always use actual quotes from the transcript to support your feedback.`;
         } else {
             // Single question session prompt
             const question = questions[0]?.question || 'Interview Question';
             
-            return `You are an AI feedback assistant reviewing a single-question group interview session.
+            return `You are an AI feedback assistant reviewing a group oral response transcript. Your task is to provide individualised feedback for each speaker, plus a group-level summary.
+
+**CRITICAL INSTRUCTION: ONLY USE ACTUAL QUOTES FROM THE TRANSCRIPT**
+- You must ONLY reference and quote content that actually appears in the provided transcript
+- DO NOT create, imagine, or paraphrase responses that weren't actually said
+- If you reference a student's response, use their EXACT words in quotes
+- If students didn't address certain aspects, state this clearly rather than inventing content
 
 **SESSION OVERVIEW:**
 - Students: ${studentNames}
 - Question: "${question}"
 
-**ANALYSIS FOCUS:**
-Provide focused feedback on how well the group addressed this specific question, including:
+For each speaker:
+- Evaluate their collaborative communication and argumentation (PEEL)
+- Provide specific, student-friendly feedback
+- Offer a model improved snippet to illustrate a stronger version of part of their response
 
-🔹 **Individual Student Responses:**
-For each student who responded to this question:
-- How well they addressed the specific question asked
-- Quality of their argument structure (PEEL: Point, Explanation, Evidence, Link)
-- Use of collaborative communication (building on others' ideas)
-- Relevance and depth of their response to this particular question
-- Specific suggestions for improvement with example improved responses
+For the final speaker:
+- Additionally assess how well they summarised group points and/or rounded off the response
 
-🔹 **Group Dynamics for This Question:**
-- How well the group collectively addressed the question
-- Quality of collaboration and idea-building for this specific topic
-- Whether the discussion stayed on-topic and relevant
-- How ideas developed and connected throughout responses to this question
-
-🔹 **Question-Specific Assessment:**
-- Did the group fully address what was asked?
-- Were responses appropriate to the question's complexity and scope?
-- What aspects of the question were well-covered vs. missed?
-- How could the group better approach this type of question in future?
-
-**EVALUATION CRITERIA:**
+✅ Evaluation Criteria:
 
 🟢 Collaborative Communication
-• Used collaborative signposting phrases?
-• Referred to and built upon teammates' ideas?
-• Promoted shared ownership of the discussion?
-• Maintained respectful and inclusive dialogue?
+• Used collaborative signposting? Quote actual phrases used
+• Referred to teammates' ideas? Reference specific instances
+• Promoted shared ownership? Show real examples
 
-🔵 Quality of Argument (PEEL)
-• Point – Clear, relevant, and directly addresses the question?
-• Explanation – Reasoning well-developed and logical?
-• Evidence/Example – Appropriate support provided for the specific question?
-• Link – Tied back to the question and broader discussion themes?
+🔵 Quality of Argument (PEEL) - Using Actual Content
+• Point – Clear and relevant? Quote actual points made
+• Explanation – Reasoning developed? Show actual examples
+• Evidence/Example – Support provided? Quote specific evidence
+• Link – Tied back to the big idea? Show how they connected
 
-🟣 Question Responsiveness
-• Directly addressed what was asked in each question?
-• Demonstrated understanding of the question's intent?
-• Provided depth appropriate to the question's complexity?
-• Connected responses meaningfully across different questions?
+✔ Acceptable content includes:
+• Problem severity/significance/trends
+• Target group needs
+• Causes: perception / motivation / engagement
+• Gaps in current measures
+• Proposed solution (who, what, where, why)
+• Evaluation: strengths, limitations
+• Personal experiences
 
-**OUTPUT FORMAT:**
-Provide clear, student-friendly feedback with specific examples and actionable suggestions for improvement.
+🟣 Final Speaker – Summary/Closure (Extra Criteria)
+• Did they accurately summarise key ideas raised by teammates? (quote)
+• Did they emphasise the most important/salient points? (reference)
+• Did they link back to the original question effectively? (show how)
+• Was the language clear, concise, and purpose-driven? (examples)
 
-**IMPORTANT CONTEXT:**
-- This transcript comes from speech-to-text, so names/words may be imperfectly transcribed
-- Use the provided student names (${studentNames}) to correct any misidentified speakers`;
+Example Output Format:
+
+🔹 Speaker A Feedback
+"Building on B's point about [quote their point], you explained [quote their explanation]. Your personal example [quote example] added authenticity. However, you could improve the link back to [specific aspect]."
+
+✏️ Suggested Improvement:
+"Building on B's point about low awareness, I believe many youths lack motivation due to a disconnect with their everyday needs. For example, when I mentored peers, they often said these topics felt too abstract. This gap highlights why our project must be grounded in daily relevance."
+
+🔹 Speaker B Feedback
+"Your point about [quote point] was insightful. However, you missed the chance to show collaboration by referencing A's point. You explained [quote explanation] well but could deepen your argument with research-based evidence."
+
+✏️ Suggested Improvement:
+"To extend A's point, while awareness is low, one key reason is that existing talks in schools don't match students' interests. A 2023 survey from REACH shows that only 1 in 3 students found school programmes meaningful. This gap in relevance is what we're addressing."
+
+🔹 Final Speaker Feedback – Summary & Closure
+"You summarized by noting [quote their summary]. While you captured [quote successful parts], you missed [note specific missed points]. Your conclusion [quote conclusion] could more effectively link to the question."
+
+✏️ Suggested Improvement:
+"To summarise, A highlighted [key point], B discussed [key point], and C proposed [key point]. Bringing these together, our group believes that [clear conclusion linking to question]."
+
+🟢 Group Summary: Collaborative Skills
+[Reference actual collaborative phrases used and transitions made]
+
+🔵 Group Summary: Quality of Argument
+[Note strongest PEEL elements with examples and areas for improvement]
+
+🟣 Final Speaker Summary Check
+[Evaluate summary effectiveness with specific quotes]
+
+Remember: Always use actual quotes from the transcript to support your feedback.`;
         }
     }
 

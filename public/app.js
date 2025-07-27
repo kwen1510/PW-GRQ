@@ -1757,13 +1757,52 @@ ${plainText.replace(/[{}\\]/g, '').replace(/\n/g, '\\par\n')}
                 loadingOverlay.querySelector('.loading-text').textContent = 'Processing final transcription...';
                 loadingOverlay.querySelector('.loading-bar').style.width = '25%';
                 
+                // Store the initial transcription count to detect when new transcription arrives
+                const initialTranscriptionCount = this.sessionData.questions[this.sessionData.currentQuestionIndex]?.transcription?.length || 0;
+                const initialDisplayCount = this.transcriptionData.filter(entry => !entry.isTranscribing).length;
+                
+                console.log(`📊 Initial counts: stored=${initialTranscriptionCount}, display=${initialDisplayCount}`);
+                
                 await this.stopCurrentRecordingAndProcess(this.currentSpeaker);
                 
-                loadingOverlay.querySelector('.loading-text').textContent = 'Finalizing transcription...';
-                loadingOverlay.querySelector('.loading-bar').style.width = '50%';
+                loadingOverlay.querySelector('.loading-text').textContent = 'Waiting for final transcription...';
+                loadingOverlay.querySelector('.loading-bar').style.width = '40%';
                 
-                // Give transcription time to complete and ensure it's stored
-                await new Promise(resolve => setTimeout(resolve, 3000)); // Increased wait time
+                // Actively wait for the final transcription to be processed and stored
+                let waitTime = 0;
+                const maxWaitTime = 10000; // Maximum 10 seconds
+                const checkInterval = 500; // Check every 500ms
+                let finalTranscriptionDetected = false;
+                
+                while (waitTime < maxWaitTime) {
+                    await new Promise(resolve => setTimeout(resolve, checkInterval));
+                    waitTime += checkInterval;
+                    
+                    const currentStoredCount = this.sessionData.questions[this.sessionData.currentQuestionIndex]?.transcription?.length || 0;
+                    const currentDisplayCount = this.transcriptionData.filter(entry => !entry.isTranscribing).length;
+                    
+                    console.log(`⏱️ Wait ${waitTime}ms: stored=${currentStoredCount}, display=${currentDisplayCount}`);
+                    
+                    // Check if we have new transcription data
+                    if (currentStoredCount > initialTranscriptionCount || currentDisplayCount > initialDisplayCount) {
+                        console.log(`✅ Final transcription detected after ${waitTime}ms`);
+                        finalTranscriptionDetected = true;
+                        break;
+                    }
+                    
+                    // Update progress bar
+                    const progress = 40 + (waitTime / maxWaitTime) * 10; // 40-50%
+                    loadingOverlay.querySelector('.loading-bar').style.width = `${progress}%`;
+                }
+                
+                // If we didn't detect new transcription, wait a bit longer just in case
+                if (!finalTranscriptionDetected) {
+                    console.log('⚠️ No new transcription detected, waiting additional 2 seconds...');
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                }
+                
+                loadingOverlay.querySelector('.loading-text').textContent = 'Finalizing transcription data...';
+                loadingOverlay.querySelector('.loading-bar').style.width = '50%';
                 
                 // IMPORTANT: Sync final transcriptions back to current display
                 if (this.sessionData.questions[this.sessionData.currentQuestionIndex] && 
@@ -1771,34 +1810,27 @@ ${plainText.replace(/[{}\\]/g, '').replace(/\n/g, '\\par\n')}
                     
                     // Get the stored transcription data (includes background processed final transcription)
                     const storedTranscription = this.sessionData.questions[this.sessionData.currentQuestionIndex].transcription;
+                    const finalTranscriptions = storedTranscription.filter(entry => !entry.isTranscribing);
                     
                     // Update the current display transcription data to include all stored transcriptions
-                    this.transcriptionData = [...storedTranscription.filter(entry => !entry.isTranscribing)];
+                    this.transcriptionData = [...finalTranscriptions];
+                    
+                    // Also update the stored question data to ensure consistency
+                    this.sessionData.questions[this.sessionData.currentQuestionIndex].transcription = [...finalTranscriptions];
                     
                     console.log(`🔄 Synced ${this.transcriptionData.length} transcriptions to current display for completion screen`);
+                    console.log(`📝 Final transcriptions:`, this.transcriptionData.map(t => `${t.speaker}: ${t.text.substring(0, 50)}...`));
+                    
+                    // Force update the transcription display
+                    this.updateTranscriptionDisplay();
+                } else {
+                    console.log(`⚠️ No stored transcription data found for current question`);
                 }
             }
 
             // Update session state
             this.sessionData.state = 'ended';
             this.sessionData.endTime = new Date().toISOString();
-
-            // Save current question data (now includes the synced final transcription)
-            if (this.sessionData.questions[this.sessionData.currentQuestionIndex]) {
-                // Filter out "transcribing" entries when saving
-                const finalTranscription = this.transcriptionData.filter(entry => !entry.isTranscribing);
-                this.sessionData.questions[this.sessionData.currentQuestionIndex].transcription = [...finalTranscription];
-                this.sessionData.questions[this.sessionData.currentQuestionIndex].endTime = new Date().toISOString();
-                
-                console.log(`💾 Final question data saved with ${finalTranscription.length} transcriptions (including final response)`);
-            }
-
-            // Stop main recording
-            this.isRecording = false;
-            if (this.audioStream) {
-                this.audioStream.getTracks().forEach(track => track.stop());
-                this.audioStream = null;
-            }
 
             loadingOverlay.querySelector('.loading-text').textContent = 'Saving to local storage...';
             loadingOverlay.querySelector('.loading-bar').style.width = '90%';
@@ -2048,9 +2080,14 @@ ${plainText.replace(/[{}\\]/g, '').replace(/\n/g, '\\par\n')}
             // For the current question, ensure we have the most up-to-date transcription data
             if (index === this.sessionData.currentQuestionIndex && this.transcriptionData.length > 0) {
                 const currentTranscription = this.transcriptionData.filter(entry => !entry.isTranscribing);
-                if (currentTranscription.length > question.transcription.length) {
+                // Always use the longer transcription list to ensure we have all entries
+                if (currentTranscription.length >= (question.transcription?.length || 0)) {
                     question.transcription = [...currentTranscription];
                     console.log(`🔄 Updated current question transcription with ${currentTranscription.length} entries`);
+                } else if (question.transcription && question.transcription.length > currentTranscription.length) {
+                    // If stored transcription is longer, update display data
+                    this.transcriptionData = [...question.transcription];
+                    console.log(`🔄 Updated display with ${question.transcription.length} entries from storage`);
                 }
             }
         });
@@ -2117,6 +2154,9 @@ ${plainText.replace(/[{}\\]/g, '').replace(/\n/g, '\\par\n')}
                 }
             });
         });
+
+        // Force update the transcription display to ensure latest data is shown
+        this.updateTranscriptionDisplay();
 
         console.log('✅ Questions review setup complete');
     }
