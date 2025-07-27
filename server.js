@@ -154,7 +154,7 @@ app.post('/api/analyze', async (req, res) => {
     // If we have an OpenAI API key, use real analysis
     if (HAS_OPENAI_KEY && openai) {
       try {
-        console.log(`🌐 Calling OpenAI GPT-4.1 for analysis...`);
+        console.log(`🌐 Calling OpenAI GPT-4 for analysis...`);
         
         // Prepare the full context for GPT
         const fullPrompt = `${prompt}
@@ -170,29 +170,28 @@ ${conversation}
 Please provide a comprehensive analysis based on the prompt above.`;
 
         const completion = await openai.chat.completions.create({
-          model: "gpt-4.1-mini", // Using GPT-4.1-mini for efficient analysis
+          model: "gpt-4", // Using GPT-4 for high-quality analysis
           messages: [
             {
               role: "system",
-              content: "You are an expert educational analyst specializing in collaborative learning and group discussions. Provide detailed, actionable insights about student interactions and learning patterns."
+              content: "You are an expert educational assessment assistant. Analyze group discussions with focus on collaborative communication, argument quality, and learning outcomes. Always use only actual quotes from the provided transcript - never create or imagine content that wasn't actually said."
             },
             {
-              role: "user",
-              content: fullPrompt
+              role: "user", 
+              content: `${prompt}\n\n**TRANSCRIPT TO ANALYZE:**\n${conversation}`
             }
           ],
           max_tokens: 2000,
-          temperature: 0.7
+          temperature: 0.3
         });
 
-        const analysis = completion.choices[0]?.message?.content || "No analysis generated";
-        
-        console.log("✅ OpenAI analysis successful");
+        const analysis = completion.choices[0].message.content;
+        console.log('✅ GPT-4 analysis completed successfully');
         
         res.json({ 
           success: true, 
           analysis: analysis,
-          model: "gpt-4.1-mini",
+          model: "gpt-4",
           timestamp: new Date().toISOString()
         });
 
@@ -207,7 +206,7 @@ Please provide a comprehensive analysis based on the prompt above.`;
       // No API key - return demo message
       const demoAnalysis = `**Demo Analysis (Add OpenAI API Key for Real Analysis)**
 
-This is a demonstration response. To get real GPT-4.1 analysis:
+This is a demonstration response. To get real GPT-4 analysis:
 1. Add your OpenAI API key to the .env file as OPENAI_API_KEY
 2. Restart the server
 3. Run the analysis again

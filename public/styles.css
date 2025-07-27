@@ -4352,3 +4352,536 @@ textarea {
     font-weight: bold;
     font-style: italic;
 }
+/* ===========================================
+   COMPREHENSIVE MOBILE & TABLET RESPONSIVE DESIGN
+   Enhanced for phones, tablets, and iPads
+   =========================================== */
+
+/* ===== MOBILE-FIRST BASE IMPROVEMENTS ===== */
+* {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    -webkit-touch-callout: none;
+}
+
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== IMPROVED TOUCH TARGETS ===== */
+button, .btn, .student-box, .nav-link {
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* ===== ENHANCED RESPONSIVE BREAKPOINTS ===== */
+
+/* Large tablets and small desktops (iPad Pro landscape) */
+@media (max-width: 1024px) and (min-width: 769px) {
+    .container {
+        padding: var(--spacing-md);
+        max-width: 95%;
+    }
+    
+    .header h1 {
+        font-size: 2.75rem;
+    }
+    
+    .student-boxes {
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--spacing-lg);
+    }
+    
+    .student-box {
+        min-height: 70px;
+        padding: var(--spacing-lg);
+        font-size: 1.1rem;
+    }
+    
+    .btn {
+        min-height: 50px;
+        padding: var(--spacing-4) var(--spacing-6);
+        font-size: 1.05rem;
+    }
+    
+    .transcription-container {
+        max-height: 400px;
+        min-height: 300px;
+    }
+    
+    .interview-meta {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .analysis-actions .btn {
+        min-width: 120px;
+    }
+}
+
+/* Tablets (iPad portrait, Android tablets) */
+@media (max-width: 768px) and (min-width: 481px) {
+    .container {
+        padding: var(--spacing-md);
+    }
+    
+    .header {
+        padding: var(--spacing-xl) var(--spacing-lg);
+        margin-bottom: var(--spacing-xl);
+    }
+    
+    .header h1 {
+        font-size: 2.5rem;
+        line-height: 1.2;
+    }
+    
+    .header .subtitle {
+        font-size: 1.125rem;
+    }
+    
+    .card {
+        padding: var(--spacing-lg);
+        margin-bottom: var(--spacing-lg);
+    }
+    
+    /* Form improvements for tablets */
+    .student-inputs {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-md);
+    }
+    
+    .student-boxes {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-md);
+    }
+    
+    .student-box {
+        min-height: 60px;
+        padding: var(--spacing-md);
+        font-size: 1rem;
+    }
+    
+    /* Button improvements */
+    .btn {
+        min-height: 48px;
+        padding: var(--spacing-3) var(--spacing-4);
+        font-size: 1rem;
+    }
+    
+    .btn-sm {
+        min-height: 44px;
+        padding: var(--spacing-2-5) var(--spacing-3);
+        font-size: 0.9rem;
+    }
+    
+    /* Navigation improvements */
+    .header-nav {
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+    
+    .nav-link {
+        padding: var(--spacing-3) var(--spacing-4);
+        min-height: 48px;
+        justify-content: center;
+    }
+    
+    /* Interview section improvements */
+    .timer-controls {
+        flex-direction: row;
+        justify-content: center;
+        gap: var(--spacing-md);
+    }
+    
+    .timer {
+        min-width: 120px;
+        font-size: 1.25rem;
+    }
+    
+    /* Questions management */
+    .questions-controls {
+        flex-direction: column;
+        gap: var(--spacing-md);
+        align-items: stretch;
+    }
+    
+    .questions-info {
+        text-align: center;
+    }
+    
+    /* Transcription improvements */
+    .transcription-container {
+        max-height: 350px;
+        min-height: 250px;
+    }
+    
+    /* Session completion improvements */
+    .interview-meta {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-sm);
+    }
+    
+    .interview-actions {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .action-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* History page improvements */
+    .history-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-md);
+    }
+    
+    .controls-right {
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+    
+    .analysis-actions {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .analysis-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Mobile phones (iPhone, Android phones) */
+@media (max-width: 480px) {
+    .container {
+        padding: var(--spacing-sm);
+    }
+    
+    .header {
+        padding: var(--spacing-lg) var(--spacing-md);
+        margin-bottom: var(--spacing-lg);
+    }
+    
+    .header h1 {
+        font-size: 2rem;
+        line-height: 1.1;
+    }
+    
+    .header .subtitle {
+        font-size: 1rem;
+    }
+    
+    .card {
+        padding: var(--spacing-md);
+        margin-bottom: var(--spacing-md);
+    }
+    
+    /* Single column layouts for mobile */
+    .student-inputs {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-sm);
+    }
+    
+    .student-boxes {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-sm);
+    }
+    
+    .student-box {
+        min-height: 56px; /* Larger touch target for mobile */
+        padding: var(--spacing-md);
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+    
+    /* Mobile button improvements */
+    .btn {
+        min-height: 52px; /* Larger for mobile */
+        padding: var(--spacing-4) var(--spacing-5);
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+    
+    .btn-sm {
+        min-height: 48px;
+        padding: var(--spacing-3) var(--spacing-4);
+        font-size: 1rem;
+    }
+    
+    /* Mobile form improvements */
+    input[type="text"], textarea {
+        font-size: 16px; /* Prevents zoom on iOS */
+        padding: var(--spacing-4);
+        min-height: 52px;
+    }
+    
+    textarea {
+        min-height: 120px;
+    }
+    
+    .question-input {
+        min-height: 100px;
+        font-size: 16px;
+    }
+    
+    /* Mobile navigation */
+    .header-nav {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .nav-link {
+        padding: var(--spacing-4) var(--spacing-5);
+        min-height: 52px;
+        font-size: 1.1rem;
+    }
+    
+    /* Mobile interview section */
+    .timer-controls {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .timer {
+        min-width: 140px;
+        font-size: 1.5rem;
+        padding: var(--spacing-lg) var(--spacing-xl);
+    }
+    
+    /* Mobile transcription */
+    .transcription-container {
+        max-height: 300px;
+        min-height: 200px;
+        padding: var(--spacing-md);
+    }
+    
+    .transcription-entry {
+        padding: var(--spacing-md);
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .transcription-speaker {
+        font-size: 1rem;
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .transcription-text {
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+    
+    /* Mobile session management */
+    .session-navigation {
+        padding: var(--spacing-md);
+    }
+    
+    .session-progress {
+        padding: var(--spacing-md);
+        margin-bottom: var(--spacing-md);
+    }
+    
+    /* Mobile question review */
+    .question-input-group {
+        padding: var(--spacing-md);
+        margin-bottom: var(--spacing-md);
+    }
+    
+    /* Mobile history page */
+    .history-controls {
+        flex-direction: column;
+        align-items: stretch;
+        padding: var(--spacing-md);
+    }
+    
+    .controls-right {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .interview-meta {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-xs);
+    }
+    
+    .interview-actions {
+        flex-direction: column;
+        gap: var(--spacing-xs);
+    }
+    
+    .action-btn {
+        width: 100%;
+        justify-content: center;
+        min-height: 48px;
+        font-size: 1rem;
+    }
+    
+    /* Mobile analysis sections */
+    .analysis-actions {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .analysis-actions .btn {
+        width: 100%;
+        justify-content: center;
+        min-height: 48px;
+    }
+    
+    .custom-analysis-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .quick-prompt-buttons {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-sm);
+    }
+    
+    .analysis-header {
+        flex-direction: column;
+        gap: var(--spacing-md);
+        align-items: stretch;
+    }
+    
+    .analysis-meta {
+        align-items: flex-start;
+    }
+    
+    .analysis-export-actions {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    /* Mobile status messages */
+    .status-message {
+        bottom: var(--spacing-md);
+        left: var(--spacing-sm);
+        right: var(--spacing-sm);
+        transform: none;
+        max-width: none;
+        padding: var(--spacing-md) var(--spacing-lg);
+        font-size: 1rem;
+    }
+    
+    .status-message.show {
+        transform: none;
+    }
+}
+
+/* ===== LANDSCAPE MOBILE OPTIMIZATIONS ===== */
+@media (max-width: 896px) and (orientation: landscape) and (max-height: 414px) {
+    .header {
+        padding: var(--spacing-md) var(--spacing-lg);
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .header h1 {
+        font-size: 1.75rem;
+    }
+    
+    .header .subtitle {
+        font-size: 0.95rem;
+    }
+    
+    .card {
+        padding: var(--spacing-md);
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .student-boxes {
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--spacing-sm);
+    }
+    
+    .student-box {
+        min-height: 48px;
+        padding: var(--spacing-sm);
+        font-size: 0.95rem;
+    }
+    
+    .transcription-container {
+        max-height: 200px;
+        min-height: 150px;
+    }
+}
+
+/* ===== ENHANCED SCROLL BEHAVIOR ===== */
+.transcription-container,
+.preview-content,
+.analysis-content,
+.custom-analysis-results {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+}
+
+/* ===== IMPROVED LOADING STATES FOR MOBILE ===== */
+@media (max-width: 480px) {
+    .loading-overlay {
+        padding: var(--spacing-md);
+    }
+    
+    .loading-content {
+        padding: var(--spacing-lg);
+        margin: var(--spacing-md);
+        max-width: 90vw;
+    }
+    
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .loading-text {
+        font-size: 1rem;
+    }
+}
+
+/* ===== ACCESSIBILITY IMPROVEMENTS ===== */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .card {
+        border-width: 3px;
+    }
+    
+    .btn {
+        border: 2px solid currentColor;
+    }
+    
+    .student-box {
+        border-width: 3px;
+    }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+    .header-nav,
+    .btn,
+    .loading-overlay,
+    .status-message {
+        display: none !important;
+    }
+    
+    .card {
+        break-inside: avoid;
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+    
+    body {
+        background: white !important;
+        color: black !important;
+    }
+}

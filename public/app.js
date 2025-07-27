@@ -1762,22 +1762,35 @@ ${plainText.replace(/[{}\\]/g, '').replace(/\n/g, '\\par\n')}
                 loadingOverlay.querySelector('.loading-text').textContent = 'Finalizing transcription...';
                 loadingOverlay.querySelector('.loading-bar').style.width = '50%';
                 
-                // Give transcription time to complete
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                // Give transcription time to complete and ensure it's stored
+                await new Promise(resolve => setTimeout(resolve, 3000)); // Increased wait time
+                
+                // IMPORTANT: Sync final transcriptions back to current display
+                if (this.sessionData.questions[this.sessionData.currentQuestionIndex] && 
+                    this.sessionData.questions[this.sessionData.currentQuestionIndex].transcription) {
+                    
+                    // Get the stored transcription data (includes background processed final transcription)
+                    const storedTranscription = this.sessionData.questions[this.sessionData.currentQuestionIndex].transcription;
+                    
+                    // Update the current display transcription data to include all stored transcriptions
+                    this.transcriptionData = [...storedTranscription.filter(entry => !entry.isTranscribing)];
+                    
+                    console.log(`🔄 Synced ${this.transcriptionData.length} transcriptions to current display for completion screen`);
+                }
             }
 
             // Update session state
             this.sessionData.state = 'ended';
             this.sessionData.endTime = new Date().toISOString();
 
-            // Save current question data
+            // Save current question data (now includes the synced final transcription)
             if (this.sessionData.questions[this.sessionData.currentQuestionIndex]) {
                 // Filter out "transcribing" entries when saving
                 const finalTranscription = this.transcriptionData.filter(entry => !entry.isTranscribing);
                 this.sessionData.questions[this.sessionData.currentQuestionIndex].transcription = [...finalTranscription];
                 this.sessionData.questions[this.sessionData.currentQuestionIndex].endTime = new Date().toISOString();
                 
-                console.log(`💾 Final question data saved with ${finalTranscription.length} transcriptions`);
+                console.log(`💾 Final question data saved with ${finalTranscription.length} transcriptions (including final response)`);
             }
 
             // Stop main recording
@@ -2027,9 +2040,18 @@ ${plainText.replace(/[{}\\]/g, '').replace(/\n/g, '\\par\n')}
         }
 
         // Filter out any isTranscribing entries from all questions
-        this.sessionData.questions.forEach(question => {
+        this.sessionData.questions.forEach((question, index) => {
             if (question.transcription) {
                 question.transcription = question.transcription.filter(entry => !entry.isTranscribing);
+            }
+            
+            // For the current question, ensure we have the most up-to-date transcription data
+            if (index === this.sessionData.currentQuestionIndex && this.transcriptionData.length > 0) {
+                const currentTranscription = this.transcriptionData.filter(entry => !entry.isTranscribing);
+                if (currentTranscription.length > question.transcription.length) {
+                    question.transcription = [...currentTranscription];
+                    console.log(`🔄 Updated current question transcription with ${currentTranscription.length} entries`);
+                }
             }
         });
 
