@@ -159,10 +159,12 @@ app.post('/api/analyze', async (req, res) => {
         // Prepare the full context for GPT
         const fullPrompt = `${prompt}
 
-**Interview Context:**
-Question: ${question}
-Student Names: ${studentNames?.join(', ') || 'Not provided'}
-Timestamp: ${timestamp}
+**Important Context:**
+- This transcript comes from speech-to-text, so speaker names may be imperfectly transcribed
+- Student names: ${studentNames?.join(', ') || 'Not provided'}
+- Question discussed: ${question}
+- If a speaker name in quotes doesn't match the provided names, correct ONLY the name part while keeping the rest of the quote unchanged
+  Example: If the transcript shows "[incorrect name]: great point" and the student is actually "John", write "John: great point"
 
 **Conversation Transcript:**
 ${conversation}
@@ -178,7 +180,7 @@ Please provide a comprehensive analysis based on the prompt above.`;
             },
             {
               role: "user", 
-              content: `${prompt}\n\n**TRANSCRIPT TO ANALYZE:**\n${conversation}`
+              content: fullPrompt
             }
           ],
           max_tokens: 2000,
