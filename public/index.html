@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Transcription App</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-microphone"></i> Interview Transcription</h1>
+            <p class="subtitle">Record and transcribe group interviews with ease</p>
+            <div class="header-nav">
+                <a href="/history.html" class="nav-link">
+                    <i class="fas fa-history"></i> History
+                </a>
+                <a href="/test.html" class="nav-link">
+                    <i class="fas fa-flask"></i> Test Recording
+                </a>
+            </div>
+        </header>
+
+        <main class="main">
+            <!-- Setup Section -->
+            <section class="setup-section">
+                <div class="card">
+                    <h2><i class="fas fa-cog"></i> Setup Interview</h2>
+                    
+                    <div class="form-group">
+                        <label for="question">Interview Question</label>
+                        <textarea id="question" placeholder="Enter your interview question here..." rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Student Names</label>
+                        <div class="student-inputs">
+                            <input type="text" id="student1" placeholder="Student 1 name" class="student-input">
+                            <input type="text" id="student2" placeholder="Student 2 name" class="student-input">
+                            <input type="text" id="student3" placeholder="Student 3 name" class="student-input">
+                            <input type="text" id="student4" placeholder="Student 4 name" class="student-input">
+                            <input type="text" id="student5" placeholder="Student 5 name" class="student-input">
+                        </div>
+                    </div>
+
+                    <button id="startSetup" class="btn btn-primary">
+                        <i class="fas fa-play"></i> Start Interview
+                    </button>
+                </div>
+            </section>
+
+            <!-- Interview Section -->
+            <section class="interview-section" style="display: none;">
+                <div class="card">
+                    <div class="interview-header">
+                        <div class="question-display">
+                            <h3><i class="fas fa-question-circle"></i> Question</h3>
+                            <p id="displayQuestion"></p>
+                        </div>
+                        
+                        <div class="timer-controls">
+                            <div class="timer">
+                                <i class="fas fa-clock"></i>
+                                <span id="timer">00:00</span>
+                            </div>
+                            <button id="recordBtn" class="btn btn-record">
+                                <i class="fas fa-microphone"></i> Start Recording
+                            </button>
+                            <button id="stopBtn" class="btn btn-stop" style="display: none;">
+                                <i class="fas fa-stop"></i> Stop Recording
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Student Selection -->
+                    <div class="students-container">
+                        <h3><i class="fas fa-users"></i> Select Current Speaker</h3>
+                        <div class="student-boxes" id="studentBoxes">
+                            <!-- Student boxes will be generated here -->
+                        </div>
+                        <div class="no-speaker">
+                            <button id="noSpeaker" class="btn btn-secondary active">
+                                <i class="fas fa-user-slash"></i> No Speaker Selected
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transcription Display -->
+                <div class="card transcription-card">
+                    <h3><i class="fas fa-file-alt"></i> Live Transcription</h3>
+                    <div class="transcription-container" id="transcriptionContainer">
+                        <p class="no-transcription">Transcription will appear here when recording starts...</p>
+                    </div>
+                </div>
+
+                <!-- Post-Processing Analysis Section -->
+                <div class="post-processing-section" id="postProcessingSection" style="display: none;">
+                    <div class="post-processing-header" onclick="togglePostProcessing()">
+                        <h3><i class="fas fa-brain"></i> Post-Processing Analysis</h3>
+                        <i class="fas fa-chevron-down" id="postProcessingChevron"></i>
+                    </div>
+                    
+                    <div class="post-processing-content" id="postProcessingContent" style="display: none;">
+                        <div class="prompt-section">
+                            <label for="analysisPrompt">
+                                <i class="fas fa-edit"></i> Analysis Prompt
+                                <span class="prompt-hint">Customize how GPT-4.1 should analyze the conversation</span>
+                            </label>
+                            <textarea 
+                                id="analysisPrompt" 
+                                placeholder="You are an AI feedback assistant reviewing a group oral response transcript. Your task is to provide individualised feedback for each speaker, plus a group-level summary. 
+
+                                For each speaker: 
+                                
+                                Evaluate their collaborative communication and argumentation (PEEL). 
+                                
+                                Provide specific, student-friendly feedback. 
+                                
+                                Offer a model improved snippet to illustrate a stronger version of part of their response. 
+                                
+                                For the final speaker: 
+                                
+                                Additionally assess how well they summarised group points and/or rounded off the response by linking back to the question. 
+                                
+                                Tone: Encouraging, specific, and clear. 
+                                
+                                 
+                                
+                                📥 Input Format Expected 
+                                
+                                Transcript with speakers labeled using their actual names: 
+                                 
+                                [Student Name]: [response]   
+                                
+                                [Student Name]: [response]   
+                                
+                                [Student Name]: [response]   
+                                
+                                ... 
+                                
+                                [Final Student Name]: [response] 
+                                
+                                ✅ Evaluation Criteria 
+                                
+                                🟢 Collaborative Communication 
+                                
+                                Used collaborative signposting? 
+                                
+                                Referred to teammates’ ideas? 
+                                
+                                Promoted shared ownership? 
+                                
+                                🔵 Quality of Argument (PEEL) 
+                                
+                                Point – Clear and relevant? 
+                                
+                                Explanation – Reasoning developed? 
+                                
+                                Evidence/Example – Support provided? 
+                                
+                                Link – Tied back to the big idea? 
+                                
+                                ✔ Acceptable content includes: 
+                                
+                                Problem severity/significance/trends 
+                                
+                                Target group needs 
+                                
+                                Causes: perception / motivation / engagement 
+                                
+                                Gaps in current measures 
+                                
+                                Proposed solution (who, what, where, why) 
+                                
+                                Evaluation: strengths, limitations 
+                                
+                                Personal experiences 
+                                
+                                🟣 Final Speaker – Summary/Closure (Extra Criteria) 
+                                
+                                Did they accurately summarise key ideas raised by teammates? 
+                                
+                                Did they emphasise the most important/salient points? 
+                                
+                                Did they link back to the original question effectively? 
+                                
+                                Was the language clear, concise, and purpose-driven? 
+                                
+                                ################# Sample Output################### 
+                                 
+                                🔹 [Student Name] Feedback 
+                                
+                                You began your response by building on [Other Student]'s point, which showed good collaboration. Your explanation of the root cause (motivation) was clear, and your personal example added authenticity. However, you could improve the link back to the project's overall aim. 
+                                
+                                ✏️ Suggested Improvement:  
+                                
+                                "Building on [Other Student]'s point about low awareness, I believe many youths lack motivation due to a disconnect with their everyday needs. For example, when I mentored peers, they often said these topics felt too abstract. This gap highlights why our project must be grounded in daily relevance." 
+                                
+                                 
+                                
+                                🔹 [Student Name] Feedback 
+                                
+                                Your point about the failure of current measures was insightful. However, you missed the chance to show collaboration by referencing [Previous Student]'s point. You explained the problem's scale well but could deepen your argument with research-based evidence. 
+                                
+                                ✏️ Suggested Improvement:  
+                                
+                                "To extend [Previous Student]'s point, while awareness is low, one key reason is that existing talks in schools don't match students' interests. A 2023 survey from REACH shows that only 1 in 3 students found school programmes meaningful. This gap in relevance is what we're addressing." 
+                                
+                                 
+                                
+                                🔹 [Final Student Name] Feedback – Summary & Closure 
+                                
+                                You did well to try and round off the discussion by summarising your teammates' points and returning to the question. However, your summary was slightly unbalanced—some speakers' ideas (e.g., the evaluation of the solution) were left out, while others were repeated. Also, your closing link to the question could be clearer and more conclusive. 
+                                
+                                ✏️ Suggested Improvement:  
+                                
+                                "To summarise, [Student A] highlighted the lack of motivation among youths, [Student B] discussed how current school measures fall short, and [Student C] proposed a tailored peer-mentorship model. Bringing these together, our group believes that empowering relatable student voices is key to solving the disengagement issue. This directly answers the question of how we can tackle the root causes of youth apathy." 
+                                
+                                 
+                                
+                                🟢 Group Summary: Collaborative Skills 
+                                
+                                Your group worked cohesively and used collaborative phrases to build on each other’s points. There was good participation across members, though a few transitions could be smoother with clearer signposting. 
+                                
+                                🔵 Group Summary: Quality of Argument 
+                                
+                                The use of PEEL was consistent across most speakers, and your arguments were well-grounded in both personal and research-based examples. Next time, aim for stronger linking back to the main question and consider exploring more varied content areas (e.g., solution evaluation or stakeholder engagement). 
+                                
+                                🟣 Final Speaker Summary Check 
+                                
+                                Your attempt to tie the group’s ideas together was commendable. Be more selective in highlighting only the most significant points and ensure your conclusion clearly links the entire response back to the question posed. 
+                                
+                                🌟 You’re progressing well—keep sharpening your teamwork and argument depth! 
+
+**Important Context:**
+- This transcript comes from speech-to-text, so names/words may be imperfectly transcribed
+- Student names are: [STUDENT_NAMES_PLACEHOLDER]
+- Question discussed: [QUESTION_PLACEHOLDER] 
+- Use the provided names to correct any misidentified speakers or name references
+
+Please provide specific examples from the conversation and actionable insights for improving collaborative discussion skills."
+                            ></textarea>
+                        </div>
+
+                        <div class="analysis-controls">
+                            <button id="runAnalysisBtn" class="analysis-btn">
+                                <i class="fas fa-magic"></i> Run GPT-4.1 Analysis
+                            </button>
+                            <div class="analysis-status" id="analysisStatus"></div>
+                        </div>
+
+                        <div class="analysis-results" id="analysisResults" style="display: none;">
+                            <h4><i class="fas fa-lightbulb"></i> Analysis Results</h4>
+                            <div class="analysis-content" id="analysisContent"></div>
+                            <div class="analysis-actions">
+                                <button id="copyAnalysisBtn" class="copy-btn">
+                                    <i class="fas fa-copy"></i> Copy Analysis
+                                </button>
+                                <button id="downloadWordBtn" class="copy-btn word-btn">
+                                    <i class="fas fa-file-word"></i> Download Word
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Export Section -->
+                <div class="card export-section">
+                    <h3><i class="fas fa-download"></i> Export & Save Data</h3>
+                    <div class="export-buttons">
+                        <button id="saveInterviewBtn" class="save-interview-btn">
+                            <i class="fas fa-save"></i> Save Interview
+                        </button>
+                        <button id="exportCSV" class="btn btn-secondary">
+                            <i class="fas fa-file-csv"></i> Download CSV
+                        </button>
+                        <button id="exportJSON" class="btn btn-secondary">
+                            <i class="fas fa-file-code"></i> Download JSON
+                        </button>
+                        <button id="resetInterview" class="btn btn-outline">
+                            <i class="fas fa-refresh"></i> New Interview
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Status Messages -->
+        <div id="statusMessage" class="status-message"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html> 
