@@ -17,29 +17,21 @@
 </head>
 <body>
     <div class="container">
-        <header class="header">
-            <h1><i class="fas fa-history"></i> Interview History</h1>
-            <p class="subtitle">View and manage your saved interview sessions</p>
-            <div class="header-nav">
-                <a href="/" class="nav-link">
-                    <i class="fas fa-arrow-left"></i> Back to App
-                </a>
-            </div>
-        </header>
+
 
         <main class="main">
-            <div class="card info-card">
-                <div class="info-header">
-                    <i class="fas fa-info-circle"></i>
-                    <h3>About Local Storage</h3>
+
+            <header class="header">
+                <h1><i class="fas fa-history"></i> Interview History</h1>
+                <p class="subtitle">View and manage your saved interview sessions</p>
+                <div class="header-nav">
+                    <a href="/" class="nav-link">
+                        <i class="fas fa-arrow-left"></i> Back to App
+                    </a>
                 </div>
-                <div class="info-content">
-                    <p><strong>🔒 Privacy:</strong> All interview data is stored locally on this device only. Your data never leaves your computer.</p>
-                    <p><strong>📱 Device Specific:</strong> Data saved on this device won't be accessible from other devices or browsers.</p>
-                    <p><strong>⚠️ Backup Recommended:</strong> Consider exporting important interviews as CSV/JSON files for backup.</p>
-                    <p><strong>🧹 Browser Data:</strong> Clearing browser data will remove all saved interviews permanently.</p>
-                </div>
-            </div>
+            </header>
+
+
 
             <div class="card">
                 <div class="history-controls">
@@ -82,6 +74,37 @@
             <div class="modal-actions">
                 <button id="confirmDeleteBtn" class="btn btn-danger">Delete</button>
                 <button id="cancelDeleteBtn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prompt Modal -->
+    <div id="promptModal" class="modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content rounded-2xl border border-slate-200 p-6 shadow-2xl" style="max-width: 900px;">
+            <h3><i class="fas fa-edit"></i> Manage Analysis Prompts</h3>
+            <p style="color: var(--text-secondary); margin-top: -6px;">Create, select, and edit prompts. Saved in MongoDB and shared.</p>
+
+            <div class="prompt-manager">
+                <div class="prompt-list">
+                    <div class="prompt-list-header">
+                        <span>Saved Prompts</span>
+                        <button id="newPromptBtn" class="btn btn-secondary"><i class="fas fa-plus"></i> New</button>
+                    </div>
+                    <ul id="promptItems" class="prompt-items"></ul>
+                </div>
+                <div class="prompt-editor">
+                    <input id="promptNameInput" class="prompt-name" type="text" placeholder="Prompt name" />
+                    <textarea id="promptModalTextarea" rows="14" style="width: 100%; margin: 12px 0;">Loading...</textarea>
+                    <div class="modal-actions">
+                        <button id="reloadPromptBtn" class="btn btn-secondary"><i class="fas fa-rotate"></i> Reload</button>
+                        <button id="choosePromptBtn" class="btn btn-primary"><i class="fas fa-play"></i> Use Prompt</button>
+                        <button id="savePromptBtn" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
+                        <button id="deletePromptBtn" class="btn btn-outline"><i class="fas fa-trash"></i> Delete</button>
+                        <button id="closePromptBtn" class="btn btn-outline">Close</button>
+                    </div>
+                    <div id="promptModalStatus" class="status-message" style="position: static; margin-top: 8px;"></div>
+                </div>
             </div>
         </div>
     </div>

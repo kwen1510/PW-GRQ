@@ -14,16 +14,37 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a'
+              },
+              accent: { 500: '#22c55e', 600: '#16a34a' },
+              fancyFrom: '#0ea5e9', fancyVia: '#6366f1', fancyTo: '#22c55e'
+            },
+            boxShadow: { posh: '0 25px 60px -15px rgba(2, 132, 199, 0.35)' },
+            borderRadius: { xl: '1rem', '2xl': '1.25rem' }
+          }
+        }
+      }
+    </script>
 </head>
 <body>
-    <div class="container">
+    <div class="container mx-auto max-w-6xl px-4 lg:px-6">
         <header class="header">
-            <h1><i class="fas fa-microphone"></i> Interview Transcription</h1>
-            <p class="subtitle">Record and transcribe group interviews with ease</p>
+            <h1 class="text-slate-800"><i class="fas fa-microphone"></i> Interview Transcription</h1>
+            <p class="subtitle text-slate-600">Record and transcribe group interviews with ease</p>
             <div class="header-nav">
                 <a href="/history.html" class="nav-link">
                     <i class="fas fa-history"></i> History
                 </a>
+                <button id="openPromptModal" class="nav-link btn btn-secondary" style="margin-left: 10px;">
+                    <i class="fas fa-pen"></i> Prompt
+                </button>
             </div>
         </header>
 
@@ -40,7 +61,7 @@
                                 <div class="question-header">
                                     <span class="question-number">Question 1</span>
                                     <button type="button" class="remove-question-btn" onclick="removeQuestion(0)" style="display: none;">
-                                        <i class="fas fa-times"></i>
+                                        <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
                                 <textarea class="question-input" placeholder="Enter your first interview question here..." rows="2"></textarea>
@@ -65,6 +86,10 @@
                             <input type="text" id="student3" placeholder="Student 3 name" class="student-input">
                             <input type="text" id="student4" placeholder="Student 4 name" class="student-input">
                             <input type="text" id="student5" placeholder="Student 5 name" class="student-input">
+                        </div>
+                        <div class="student-controls">
+                            <button type="button" id="addStudentBtn" class="btn btn-secondary"><i class="fas fa-user-plus"></i> Add Student</button>
+                            <button type="button" id="removeStudentBtn" class="btn btn-outline"><i class="fas fa-user-minus"></i> Remove Last</button>
                         </div>
                     </div>
 
@@ -101,12 +126,12 @@
                     <!-- Student Selection -->
                     <div class="students-container">
                         <h3><i class="fas fa-users"></i> Select Current Speaker</h3>
-                        <div class="student-boxes" id="studentBoxes">
+                        <div class="student-boxes grid grid-cols-1 md:grid-cols-2 gap-6" id="studentBoxes">
                             <!-- Student boxes will be generated here -->
                         </div>
-                        <div class="no-speaker">
-                            <button id="noSpeaker" class="btn btn-secondary active">
-                                <i class="fas fa-user-slash"></i> No Speaker Selected
+                        <div class="no-speaker mt-4">
+                            <button id="noSpeaker" class="btn btn-secondary active w-full md:w-72 h-14 text-lg font-semibold rounded-xl bg-gradient-to-r from-sky-500 via-cyan-500 to-emerald-500 text-white shadow-lg hover:shadow-xl hover:opacity-95 transition">
+                                <i class="fas fa-chalkboard-teacher"></i> Teacher
                             </button>
                         </div>
                         
@@ -139,108 +164,53 @@
                 <!-- Session Completion Section (moved outside interview section) -->
             </section>
 
-            <!-- Session Completion Section (moved outside interview section) -->
+            <!-- Session Completion Section -->
             <div class="session-completion-section" id="sessionCompletionSection" style="display: none;">
-                <div class="card">
-                    <h3><i class="fas fa-flag-checkered"></i> Session Complete - Review & Analyze</h3>
-                    
+                <div class="completion-header">
+                    <h2><i class="fas fa-flag-checkered"></i> Session Complete - Review & Analyze</h2>
+                </div>
+                
+                <div class="session-overview-card">
                     <div class="session-summary">
                         <p><strong>Session Summary:</strong> <span id="sessionSummaryText"></span></p>
                         <p><strong>Total Recording Time:</strong> <span id="sessionDuration">00:00</span></p>
                     </div>
+                </div>
 
-                    <div class="questions-review">
-                        <h4><i class="fas fa-edit"></i> Review & Edit Questions</h4>
-                        <p class="review-hint">Review and edit your questions before running the analysis. This helps ensure accurate context for the AI analysis.</p>
+                <div class="session-analysis-section">
+                    <h3><i class="fas fa-brain"></i> Session Analysis</h3>
+                    
+                    <div class="questions-review-cards">
                         <div id="questionsReviewContainer">
                             <!-- Questions will be populated here -->
                         </div>
                     </div>
 
-                    <div class="session-analysis">
-                        <h4><i class="fas fa-brain"></i> Session Analysis</h4>
+                        <!-- Individual question transcripts are now displayed in the cards above -->
                         <div class="analysis-prompt-section">
                             <label for="sessionAnalysisPrompt">
-                                <i class="fas fa-edit"></i> Analysis Prompt for Entire Session
-                                <span class="prompt-hint">This prompt will analyze the complete session across all questions</span>
+                                <div class="label-content">
+                                    <div class="label-title">
+                                        <i class="fas fa-edit"></i> Analysis Prompt for Entire Session
+                                    </div>
+                                    <span class="prompt-hint">This prompt will analyze the complete session across all questions</span>
+                                </div>
+                                <button type="button" id="openPromptModalAtEnd" class="btn btn-secondary">
+                                    <i class="fas fa-folder-open"></i> Load Saved Prompt
+                                </button>
                             </label>
                             <textarea 
                                 id="sessionAnalysisPrompt" 
-                                rows="15"
-                            >You are an AI feedback assistant reviewing a group oral response transcript. Your task is to provide individualised feedback for each speaker, plus a group-level summary.
+                                rows="8" class="w-full box-border"
+                                placeholder="Click 'Load Saved Prompt' to select from your saved analysis prompts"
+                            >To get started with session analysis:
 
-**CRITICAL INSTRUCTION: ONLY USE ACTUAL QUOTES FROM THE TRANSCRIPT**
-- You must ONLY reference and quote content that actually appears in the provided transcript
-- DO NOT create, imagine, or paraphrase responses that weren't actually said
-- If you reference a student's response, use their EXACT words in quotes
-- If students didn't address certain aspects, state this clearly rather than inventing content
+1. Click the "Load Saved Prompt" button above to browse your saved prompts
+2. Select an appropriate analysis prompt from your collection  
+3. The selected prompt will appear here automatically
+4. Then click "Analyze Complete Session" to run the analysis
 
-For each speaker:
-- Evaluate their collaborative communication and argumentation (PEEL)
-- Provide specific, student-friendly feedback
-- Offer a model improved snippet to illustrate a stronger version of part of their response
-
-For the final speaker:
-- Additionally assess how well they summarised group points and/or rounded off the response
-
-✅ Evaluation Criteria:
-
-🟢 Collaborative Communication
-• Used collaborative signposting? Quote actual phrases used
-• Referred to teammates' ideas? Reference specific instances
-• Promoted shared ownership? Show real examples
-
-🔵 Quality of Argument (PEEL) - Using Actual Content
-• Point – Clear and relevant? Quote actual points made
-• Explanation – Reasoning developed? Show actual examples
-• Evidence/Example – Support provided? Quote specific evidence
-• Link – Tied back to the big idea? Show how they connected
-
-✔ Acceptable content includes:
-• Problem severity/significance/trends
-• Target group needs
-• Causes: perception / motivation / engagement
-• Gaps in current measures
-• Proposed solution (who, what, where, why)
-• Evaluation: strengths, limitations
-• Personal experiences
-
-🟣 Final Speaker – Summary/Closure (Extra Criteria)
-• Did they accurately summarise key ideas raised by teammates? (quote)
-• Did they emphasise the most important/salient points? (reference)
-• Did they link back to the original question effectively? (show how)
-• Was the language clear, concise, and purpose-driven? (examples)
-
-Example Output Format:
-
-🔹 Speaker A Feedback
-"Building on B's point about [quote their point], you explained [quote their explanation]. Your personal example [quote example] added authenticity. However, you could improve the link back to [specific aspect]."
-
-✏️ Suggested Improvement:
-"Building on B's point about low awareness, I believe many youths lack motivation due to a disconnect with their everyday needs. For example, when I mentored peers, they often said these topics felt too abstract. This gap highlights why our project must be grounded in daily relevance."
-
-🔹 Speaker B Feedback
-"Your point about [quote point] was insightful. However, you missed the chance to show collaboration by referencing A's point. You explained [quote explanation] well but could deepen your argument with research-based evidence."
-
-✏️ Suggested Improvement:
-"To extend A's point, while awareness is low, one key reason is that existing talks in schools don't match students' interests. A 2023 survey from REACH shows that only 1 in 3 students found school programmes meaningful. This gap in relevance is what we're addressing."
-
-🔹 Final Speaker Feedback – Summary & Closure
-"You summarized by noting [quote their summary]. While you captured [quote successful parts], you missed [note specific missed points]. Your conclusion [quote conclusion] could more effectively link to the question."
-
-✏️ Suggested Improvement:
-"To summarise, A highlighted [key point], B discussed [key point], and C proposed [key point]. Bringing these together, our group believes that [clear conclusion linking to question]."
-
-🟢 Group Summary: Collaborative Skills
-[Reference actual collaborative phrases used and transitions made]
-
-🔵 Group Summary: Quality of Argument
-[Note strongest PEEL elements with examples and areas for improvement]
-
-🟣 Final Speaker Summary Check
-[Evaluate summary effectiveness with specific quotes]
-
-Remember: Always use actual quotes from the transcript to support your feedback.</textarea>
+Your saved prompts contain detailed instructions for analyzing transcripts and providing feedback.</textarea>
                         </div>
 
                         <div class="session-analysis-controls">
@@ -279,7 +249,9 @@ Remember: Always use actual quotes from the transcript to support your feedback.
                         <span id="sessionStatusText">Session Active</span>
                     </div>
                 </div>
-                <div class="export-buttons">
+                
+                <div class="session-actions">
+                    <div class="export-buttons">
                     <button id="exportCSV" class="btn btn-secondary" style="display: none;">
                         <i class="fas fa-file-csv"></i> Download CSV
                     </button>
@@ -289,6 +261,8 @@ Remember: Always use actual quotes from the transcript to support your feedback.
                     <button id="resetInterview" class="btn btn-outline">
                         <i class="fas fa-refresh"></i> New Session
                     </button>
+                    </div>
+                </div>
                 </div>
             </div>
         </main>
@@ -298,5 +272,41 @@ Remember: Always use actual quotes from the transcript to support your feedback.
     </div>
 
     <script src="app.js"></script>
+
+    <!-- Prompt Modal -->
+    <div id="promptModal" class="modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content rounded-2xl border border-slate-200 p-6 shadow-2xl" style="max-width: 900px;">
+            <h3><i class="fas fa-edit"></i> Manage Analysis Prompts</h3>
+            <p style="color: var(--text-secondary); margin-top: -6px;">Create, select, and edit prompts. Saved in MongoDB and shared.</p>
+
+            <div class="prompt-manager">
+                <div class="prompt-list">
+                    <div class="prompt-list-header">
+                        <span>Saved Prompts</span>
+                        <button id="newPromptBtn" class="btn btn-secondary"><i class="fas fa-plus"></i> New</button>
+                    </div>
+                    <ul id="promptItems" class="prompt-items"></ul>
+                </div>
+                <div class="prompt-editor">
+                    <input id="promptNameInput" class="prompt-name" type="text" placeholder="Prompt name" />
+                    <textarea id="promptModalTextarea" rows="14" style="width: 100%; margin: 12px 0;">Loading...</textarea>
+                    <div class="modal-actions">
+                        <button id="reloadPromptBtn" class="btn btn-secondary"><i class="fas fa-rotate"></i> Reload</button>
+                        <button id="choosePromptBtn" class="btn btn-primary"><i class="fas fa-check"></i> Use Prompt</button>
+                        <button id="savePromptBtn" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
+                        <button id="deletePromptBtn" class="btn btn-outline"><i class="fas fa-trash"></i> Delete</button>
+                        <button id="closePromptBtn" class="btn btn-outline">Close</button>
+                    </div>
+                    <div id="promptModalStatus" class="status-message" style="position: static; margin-top: 8px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Prompt Button (always accessible) -->
+    <button id="openPromptModalFloating" class="floating-prompt-btn" title="Edit Prompt" aria-label="Edit Prompt">
+        <i class="fas fa-pen"></i>
+    </button>
 </body>
 </html> 

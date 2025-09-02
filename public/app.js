@@ -76,7 +76,7 @@ class InterviewTranscriptionApp {
             <div class="question-header">
                 <span class="question-number">Question ${questionNumber}</span>
                 <button type="button" class="remove-question-btn" onclick="app.removeQuestionInput(${questionIndex})">
-                    <i class="fas fa-times"></i>
+                    <i class="fas fa-trash"></i>
                 </button>
             </div>
             <textarea class="question-input" placeholder="Enter question ${questionNumber} here..." rows="2"></textarea>
@@ -140,13 +140,11 @@ class InterviewTranscriptionApp {
         this.addQuestionBtn = document.getElementById('addQuestionBtn');
         this.questionCount = document.getElementById('questionCount');
         
-        this.studentInputs = [
-            document.getElementById('student1'),
-            document.getElementById('student2'),
-            document.getElementById('student3'),
-            document.getElementById('student4'),
-            document.getElementById('student5')
-        ];
+        // Student inputs (dynamic)
+        this.studentInputsContainer = document.querySelector('.student-inputs');
+        this.addStudentBtn = document.getElementById('addStudentBtn');
+        this.removeStudentBtn = document.getElementById('removeStudentBtn');
+        this.studentInputs = Array.from(this.studentInputsContainer.querySelectorAll('.student-input'));
         this.startSetupBtn = document.getElementById('startSetup');
         
         // Initialize with first question input
@@ -197,9 +195,34 @@ class InterviewTranscriptionApp {
         this.sessionAnalysisContent = document.getElementById('sessionAnalysisContent');
         this.copySessionAnalysisBtn = document.getElementById('copySessionAnalysisBtn');
         this.downloadSessionWordBtn = document.getElementById('downloadSessionWordBtn');
+        // Transcript editor elements
+        this.transcriptEditor = document.getElementById('transcriptEditor');
+        this.saveTranscriptBtn = document.getElementById('saveTranscriptBtn');
+        this.revertTranscriptBtn = document.getElementById('revertTranscriptBtn');
+        this.transcriptHistoryStatus = document.getElementById('transcriptHistoryStatus');
+        this.transcriptDisplay = document.getElementById('transcriptDisplay');
+        this.editTranscriptBtn = document.getElementById('editTranscriptBtn');
+        this.openPromptModalAtEndBtn = document.getElementById('openPromptModalAtEnd');
         
         // Status message
         this.statusMessage = document.getElementById('statusMessage');
+
+        // Prompt modal elements
+        this.promptModal = document.getElementById('promptModal');
+        this.openPromptModalBtn = document.getElementById('openPromptModal');
+        this.openPromptModalFloatingBtn = document.getElementById('openPromptModalFloating');
+        this.promptModalTextarea = document.getElementById('promptModalTextarea');
+        this.savePromptBtn = document.getElementById('savePromptBtn');
+        this.closePromptBtn = document.getElementById('closePromptBtn');
+        this.reloadPromptBtn = document.getElementById('reloadPromptBtn');
+        this.promptModalStatus = document.getElementById('promptModalStatus');
+        // Multi-prompt controls
+        this.promptItems = document.getElementById('promptItems');
+        this.promptNameInput = document.getElementById('promptNameInput');
+        this.newPromptBtn = document.getElementById('newPromptBtn');
+        this.deletePromptBtn = document.getElementById('deletePromptBtn');
+        this.choosePromptBtn = document.getElementById('choosePromptBtn');
+        this.activePromptId = null;
     }
 
     setupEventListeners() {
@@ -218,16 +241,229 @@ class InterviewTranscriptionApp {
         this.addQuestionBtn.addEventListener('click', () => this.addQuestionInput());
         this.recordBtn.addEventListener('click', () => this.startMainRecording());
         this.endSessionBtn.addEventListener('click', () => this.endSession());
-        this.noSpeakerBtn.addEventListener('click', () => this.selectSpeaker(null));
+        this.noSpeakerBtn.addEventListener('click', () => this.selectSpeaker('Teacher'));
         this.exportCSVBtn.addEventListener('click', () => this.exportToCSV());
         this.exportJSONBtn.addEventListener('click', () => this.exportToJSON());
         this.resetBtn.addEventListener('click', () => this.resetInterview());
         this.nextQuestionBtn.addEventListener('click', () => this.startNextQuestion());
+
+        // Student input controls
+        if (this.addStudentBtn) this.addStudentBtn.addEventListener('click', () => this.addStudentInput());
+        if (this.removeStudentBtn) this.removeStudentBtn.addEventListener('click', () => this.removeStudentInput());
         
         // Session completion event listeners
         this.runSessionAnalysisBtn.addEventListener('click', () => this.runSessionAnalysis());
         this.copySessionAnalysisBtn.addEventListener('click', () => this.copySessionAnalysisToClipboard());
         this.downloadSessionWordBtn.addEventListener('click', () => this.downloadSessionAnalysisAsWord());
+        if (this.openPromptModalAtEndBtn) {
+            this.openPromptModalAtEndBtn.addEventListener('click', () => this.openPromptEditor());
+        }
+
+        // Transcript editor listeners
+        if (this.transcriptEditor) {
+            this.transcriptEditor.addEventListener('input', () => this.autosaveTranscriptDraft());
+        }
+        if (this.editTranscriptBtn) {
+            this.editTranscriptBtn.addEventListener('click', () => this.toggleTranscriptEdit(true));
+        }
+        if (this.saveTranscriptBtn) {
+            this.saveTranscriptBtn.addEventListener('click', () => this.saveEditedTranscript());
+        }
+        if (this.revertTranscriptBtn) {
+            this.revertTranscriptBtn.addEventListener('click', () => this.revertLastTranscriptVersion());
+        }
+
+        // Prompt modal listeners
+        if (this.openPromptModalBtn) {
+            this.openPromptModalBtn.addEventListener('click', () => this.openPromptEditor());
+        }
+        if (this.openPromptModalFloatingBtn) {
+            this.openPromptModalFloatingBtn.addEventListener('click', () => this.openPromptEditor());
+        }
+        if (this.closePromptBtn) {
+            this.closePromptBtn.addEventListener('click', () => this.closePromptEditor());
+        }
+        if (this.reloadPromptBtn) {
+            this.reloadPromptBtn.addEventListener('click', () => this.loadPromptList());
+        }
+        if (this.savePromptBtn) {
+            this.savePromptBtn.addEventListener('click', () => this.saveCurrentPrompt());
+        }
+        if (this.newPromptBtn) {
+            this.newPromptBtn.addEventListener('click', () => this.createNewPrompt());
+        }
+        if (this.deletePromptBtn) {
+            this.deletePromptBtn.addEventListener('click', () => this.deleteCurrentPrompt());
+        }
+        if (this.choosePromptBtn) {
+            this.choosePromptBtn.addEventListener('click', () => this.applyCurrentPromptToSession());
+        }
+
+        // Close prompt modal when clicking outside content or pressing Escape
+        if (this.promptModal) {
+            const backdrop = this.promptModal.querySelector('.modal-backdrop');
+            if (backdrop) {
+                backdrop.addEventListener('click', () => this.closePromptEditor());
+            }
+            this.promptModal.addEventListener('mousedown', (event) => {
+                const content = this.promptModal.querySelector('.modal-content');
+                if (!content) return;
+                if (!content.contains(event.target)) {
+                    this.closePromptEditor();
+                }
+            });
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && this.promptModal.style.display === 'flex') {
+                    this.closePromptEditor();
+                }
+            });
+        }
+    }
+
+    // ===== Transcript Editing with Versioned Local Storage =====
+    buildFullTranscriptFromSession() {
+        if (!this.sessionData || !this.sessionData.questions) return '';
+        const parts = [];
+        this.sessionData.questions.forEach((q, i) => {
+            parts.push(`Question ${i + 1}: ${q.question || ''}`);
+            if (Array.isArray(q.transcription)) {
+                q.transcription.forEach(t => {
+                    if (t && t.text) parts.push(`${t.speaker || 'Speaker'}: ${t.text}`);
+                });
+            }
+            parts.push('');
+        });
+        return parts.join('\n');
+    }
+
+    loadTranscriptEditor() {
+        if (!this.transcriptEditor) return;
+        const transcript = this.buildFullTranscriptFromSession();
+        this.transcriptEditor.value = transcript;
+        this.renderTranscriptDisplay(transcript);
+    }
+
+    renderTranscriptDisplay(text) {
+        if (!this.transcriptDisplay) return;
+        const lines = (text || '').split(/\n+/).filter(Boolean);
+        const html = lines.map((line, idx) => {
+            const m = line.match(/^(.*?):\s*(.*)$/);
+            if (m) {
+                const userRaw = m[1] || '';
+                const user = this.escapeHtml(userRaw);
+                const content = this.escapeHtml(m[2] || '');
+                const isQuestion = idx === 0 && /^question\b/i.test(userRaw.trim());
+                const rowClass = `td-row${isQuestion ? ' td-question' : ''}`;
+                return `<div class="${rowClass}"><span class="td-user">${user}</span><span class="td-text">${content}</span></div>`;
+            }
+            return `<div class="td-row td-sep">${this.escapeHtml(line)}</div>`;
+        }).join('');
+        this.transcriptDisplay.innerHTML = html || '<div class="td-empty">Transcript will appear here...</div>';
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text || '';
+        return div.innerHTML;
+    }
+
+    toggleTranscriptEdit(show) {
+        if (!this.transcriptEditor || !this.transcriptDisplay) return;
+        const actions = document.querySelector('.transcript-actions');
+        if (show) {
+            this.transcriptEditor.style.display = 'block';
+            if (actions) actions.style.display = 'flex';
+            this.transcriptDisplay.style.display = 'none';
+        } else {
+            this.transcriptEditor.style.display = 'none';
+            if (actions) actions.style.display = 'none';
+            this.transcriptDisplay.style.display = 'block';
+        }
+    }
+
+    autosaveTranscriptDraft() {
+        if (!this.transcriptEditor || !this.sessionData?.sessionId) return;
+        const draftKey = `transcript_draft_${this.sessionData.sessionId}`;
+        localStorage.setItem(draftKey, this.transcriptEditor.value);
+        this.showTranscriptStatus('Draft autosaved', 'success');
+    }
+
+    saveEditedTranscript() {
+        if (!this.transcriptEditor || !this.sessionData?.sessionId) return;
+        const id = this.sessionData.sessionId;
+        const archiveKey = `transcript_archive_${id}`;
+        const currentKey = `transcript_current_${id}`;
+        const timestamp = new Date().toISOString();
+
+        // Push current version to archive
+        const archive = JSON.parse(localStorage.getItem(archiveKey) || '[]');
+        const previous = localStorage.getItem(currentKey) || '';
+        archive.push({ timestamp, text: previous });
+        // Keep last 20 versions
+        while (archive.length > 20) archive.shift();
+        localStorage.setItem(archiveKey, JSON.stringify(archive));
+
+        // Save new current
+        localStorage.setItem(currentKey, this.transcriptEditor.value);
+        localStorage.removeItem(`transcript_draft_${id}`);
+        this.renderTranscriptDisplay(this.transcriptEditor.value);
+        this.toggleTranscriptEdit(false);
+        this.showTranscriptStatus('Transcript saved with version history', 'success');
+    }
+
+    revertLastTranscriptVersion() {
+        if (!this.transcriptEditor || !this.sessionData?.sessionId) return;
+        const id = this.sessionData.sessionId;
+        const archiveKey = `transcript_archive_${id}`;
+        const currentKey = `transcript_current_${id}`;
+        const archive = JSON.parse(localStorage.getItem(archiveKey) || '[]');
+        if (archive.length === 0) {
+            this.showTranscriptStatus('No previous versions available', 'error');
+            return;
+        }
+        const last = archive.pop();
+        const current = localStorage.getItem(currentKey) || '';
+        // Move current into archive and restore last
+        archive.push({ timestamp: new Date().toISOString(), text: current });
+        localStorage.setItem(archiveKey, JSON.stringify(archive));
+        localStorage.setItem(currentKey, last.text || '');
+        this.transcriptEditor.value = last.text || '';
+        this.showTranscriptStatus('Reverted to previous version', 'success');
+    }
+
+    showTranscriptStatus(message, kind = 'success') {
+        if (!this.transcriptHistoryStatus) return;
+        this.transcriptHistoryStatus.textContent = message;
+        this.transcriptHistoryStatus.className = `status-message ${kind} show`;
+        setTimeout(() => this.transcriptHistoryStatus.classList.remove('show'), 1500);
+    }
+
+    refreshStudentInputsList() {
+        this.studentInputs = Array.from(this.studentInputsContainer.querySelectorAll('.student-input'));
+    }
+
+    addStudentInput() {
+        if (!this.studentInputsContainer) return;
+        const count = this.studentInputsContainer.querySelectorAll('.student-input').length;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'student-input';
+        input.placeholder = `Student ${count + 1} name`;
+        this.studentInputsContainer.appendChild(input);
+        this.refreshStudentInputsList();
+        input.focus();
+    }
+
+    removeStudentInput() {
+        if (!this.studentInputsContainer) return;
+        const inputs = this.studentInputsContainer.querySelectorAll('.student-input');
+        if (inputs.length > 1) {
+            const last = inputs[inputs.length - 1];
+            last.parentNode.removeChild(last);
+            this.refreshStudentInputsList();
+        } else {
+            this.showStatus('At least one student is required', 'info');
+        }
     }
 
     startInterview() {
@@ -272,6 +508,9 @@ class InterviewTranscriptionApp {
             
             const modeText = this.demoMode ? ' (No API Key)' : '';
             
+            // Default to Teacher at session start
+            this.selectSpeaker('Teacher');
+
             // Automatically start recording
             this.startMainRecording().then(() => {
                 this.showStatus(`Question ${this.sessionData.currentQuestionIndex + 1} updated! Recording started. Select speakers.${modeText}`, 'success');
@@ -364,6 +603,9 @@ class InterviewTranscriptionApp {
         const totalQuestions = this.sessionData.questions.length;
         
         console.log('🎤 Starting main recording...');
+        // Default to Teacher at session start
+        this.selectSpeaker('Teacher');
+
         // Automatically start recording
         this.startMainRecording().then(() => {
             console.log('✅ Recording started successfully');
@@ -372,6 +614,158 @@ class InterviewTranscriptionApp {
             console.error('❌ Error starting recording:', error);
             this.showStatus('Error starting recording. Please check microphone permissions.', 'error');
         });
+    }
+
+    // Prompt modal helpers
+    async openPromptEditor() {
+        if (!this.promptModal) return;
+        this.promptModal.style.display = 'flex';
+        await this.loadPromptList();
+    }
+
+    closePromptEditor() {
+        if (!this.promptModal) return;
+        this.promptModal.style.display = 'none';
+    }
+
+    async loadPromptList() {
+        try {
+            if (this.promptItems) this.promptItems.innerHTML = '<li>Loading...</li>';
+            const listResp = await fetch('/api/prompts');
+            const listData = await listResp.json();
+            const prompts = listData.prompts || [];
+            if (this.promptItems) {
+                this.promptItems.innerHTML = '';
+                prompts.forEach(p => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span>${(p.name || '(Untitled)').replace(/</g,'&lt;')}</span><span class="choose">Use</span>`;
+                    li.addEventListener('click', () => this.selectPrompt(p._id));
+                    if (this.activePromptId && (this.activePromptId === p._id)) li.classList.add('active');
+                    this.promptItems.appendChild(li);
+                });
+            }
+            // If nothing selected, auto-select first
+            if (!this.activePromptId && prompts.length) {
+                await this.selectPrompt(prompts[0]._id);
+            } else if (!prompts.length) {
+                this.activePromptId = null;
+                if (this.promptNameInput) this.promptNameInput.value = '';
+                if (this.promptModalTextarea) this.promptModalTextarea.value = '';
+            }
+        } catch (e) {
+            if (this.promptModalStatus) {
+                this.promptModalStatus.textContent = 'Failed to load prompts';
+                this.promptModalStatus.className = 'status-message error show';
+                setTimeout(() => this.promptModalStatus.classList.remove('show'), 3000);
+            }
+        }
+    }
+
+    async selectPrompt(id) {
+        try {
+            const resp = await fetch(`/api/prompts/${id}`);
+            const data = await resp.json();
+            if (resp.ok) {
+                this.activePromptId = data._id;
+                if (this.promptNameInput) this.promptNameInput.value = data.name || '';
+                if (this.promptModalTextarea) this.promptModalTextarea.value = data.text || '';
+                if (this.sessionAnalysisPrompt) this.sessionAnalysisPrompt.value = data.text || '';
+                // Refresh selection marker
+                if (this.promptItems) {
+                    Array.from(this.promptItems.children).forEach(li => li.classList.remove('active'));
+                    const match = Array.from(this.promptItems.children).find(li => li.textContent === (data.name || '(Untitled)'));
+                    if (match) match.classList.add('active');
+                }
+            } else {
+                throw new Error(data.error || 'Load failed');
+            }
+        } catch (e) {
+            if (this.promptModalStatus) {
+                this.promptModalStatus.textContent = 'Failed to load prompt';
+                this.promptModalStatus.className = 'status-message error show';
+                setTimeout(() => this.promptModalStatus.classList.remove('show'), 3000);
+            }
+        }
+    }
+
+    async saveCurrentPrompt() {
+        if (!this.promptModalTextarea) return;
+        const name = (this.promptNameInput?.value || '').trim();
+        if (!name) {
+            if (this.promptModalStatus) {
+                this.promptModalStatus.textContent = 'Please provide a name for the prompt';
+                this.promptModalStatus.className = 'status-message error show';
+                setTimeout(() => this.promptModalStatus.classList.remove('show'), 2500);
+            }
+            this.promptNameInput?.focus();
+            return;
+        }
+        const text = this.promptModalTextarea.value || '';
+        try {
+            if (this.activePromptId) {
+                const resp = await fetch(`/api/prompts/${this.activePromptId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, text })
+                });
+                const data = await resp.json();
+                if (!resp.ok) throw new Error(data.error || 'Save failed');
+            } else {
+                const resp = await fetch('/api/prompts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, text })
+                });
+                const data = await resp.json();
+                if (!resp.ok) throw new Error(data.error || 'Create failed');
+                this.activePromptId = data.id;
+            }
+            if (this.sessionAnalysisPrompt) this.sessionAnalysisPrompt.value = text;
+            if (this.promptModalStatus) {
+                this.promptModalStatus.textContent = 'Saved';
+                this.promptModalStatus.className = 'status-message success show';
+                setTimeout(() => this.promptModalStatus.classList.remove('show'), 1500);
+            }
+            await this.loadPromptList();
+        } catch (e) {
+            if (this.promptModalStatus) {
+                this.promptModalStatus.textContent = 'Failed to save prompt';
+                this.promptModalStatus.className = 'status-message error show';
+                setTimeout(() => this.promptModalStatus.classList.remove('show'), 3000);
+            }
+        }
+    }
+
+    async createNewPrompt() {
+        this.activePromptId = null;
+        if (this.promptNameInput) this.promptNameInput.value = '';
+        if (this.promptModalTextarea) this.promptModalTextarea.value = '';
+        if (this.promptItems) Array.from(this.promptItems.children).forEach(li => li.classList.remove('active'));
+    }
+
+    applyCurrentPromptToSession() {
+        const text = this.promptModalTextarea?.value || '';
+        if (this.sessionAnalysisPrompt) this.sessionAnalysisPrompt.value = text;
+        this.closePromptEditor();
+        this.showStatus('Prompt selected for this session', 'success');
+    }
+
+    async deleteCurrentPrompt() {
+        if (!this.activePromptId) return;
+        try {
+            const resp = await fetch(`/api/prompts/${this.activePromptId}`, { method: 'DELETE' });
+            if (!resp.ok) throw new Error('Delete failed');
+            this.activePromptId = null;
+            if (this.promptNameInput) this.promptNameInput.value = '';
+            if (this.promptModalTextarea) this.promptModalTextarea.value = '';
+            await this.loadPromptList();
+        } catch (e) {
+            if (this.promptModalStatus) {
+                this.promptModalStatus.textContent = 'Failed to delete prompt';
+                this.promptModalStatus.className = 'status-message error show';
+                setTimeout(() => this.promptModalStatus.classList.remove('show'), 3000);
+            }
+        }
     }
 
     generateStudentBoxes() {
@@ -400,7 +794,7 @@ class InterviewTranscriptionApp {
         
         // If we need to process transcription for previous speaker
         if (shouldTranscribe) {
-            console.log(`🔄 Switching from "${previousSpeaker || 'No Speaker'}" to "${speaker || 'No Speaker'}"`);
+            console.log(`🔄 Switching from "${previousSpeaker || 'Teacher'}" to "${speaker || 'Teacher'}"`);
             
             // Stop current recording and wait for it to finish
             await this.stopCurrentRecordingAndProcess(previousSpeaker);
@@ -408,12 +802,12 @@ class InterviewTranscriptionApp {
         
         // Update current speaker
         this.currentSpeaker = speaker;
-        console.log(`🎙️ Speaker selected: ${speaker || 'No Speaker'}`);
+        console.log(`🎙️ Speaker selected: ${speaker || 'Teacher'}`);
         
         // If main recording is active, start recording for new speaker
         if (this.isRecording) {
             await this.startSpeakerRecording();
-            this.showStatus(`🎤 Recording for: ${speaker || 'No Speaker'}`, 'info');
+            this.showStatus(`🎤 Recording for: ${speaker || 'Teacher'}`, 'info');
         }
     }
 
@@ -430,10 +824,10 @@ class InterviewTranscriptionApp {
             this.mediaRecorder.onstop = async () => {
                 // Process the chunks we captured for the previous speaker
                 if (chunksToProcess.length > 0) {
-                    console.log(`📎 Processing ${chunksToProcess.length} chunks for previous speaker: ${previousSpeaker || 'No Speaker'} (Question ${questionIndex + 1})`);
+                    console.log(`📎 Processing ${chunksToProcess.length} chunks for previous speaker: ${previousSpeaker || 'Teacher'} (Question ${questionIndex + 1})`);
                     
                     try {
-                        const audioBlob = new Blob(chunksToProcess, { type: 'audio/webm' });
+                        const audioBlob = new Blob(chunksToProcess, { type: this.currentAudioMimeType || 'audio/webm' });
                         
                         if (audioBlob.size > 5000) { // 5KB minimum
                             // Show transcribing indicator for the correct question
@@ -451,12 +845,17 @@ class InterviewTranscriptionApp {
                     console.log('⚠️ No chunks to process');
                 }
                 
-                // Clear chunks for new recording
+                // Clear chunks for next recording cycle AFTER processing
                 this.currentAudioChunks = [];
                 resolve();
             };
             
-            this.mediaRecorder.stop();
+            try {
+                this.mediaRecorder.stop();
+            } catch (e) {
+                console.warn('⚠️ mediaRecorder.stop() failed or already stopped:', e);
+                resolve();
+            }
         });
     }
 
@@ -474,7 +873,8 @@ class InterviewTranscriptionApp {
                 }
             });
         } else {
-            this.noSpeakerBtn.classList.add('active');
+            // No speaker state is no longer used; teacher is explicit
+            this.noSpeakerBtn.classList.remove('active');
         }
     }
 
@@ -486,7 +886,7 @@ class InterviewTranscriptionApp {
         // Add a temporary "transcribing..." entry that will be replaced
         const timestamp = new Date().toISOString();
         const transcribingEntry = {
-            speaker: speaker || 'No Speaker',
+            speaker: speaker || 'Teacher',
             text: 'Transcribing...',
             timestamp: timestamp,
             isTranscribing: true
@@ -573,16 +973,16 @@ class InterviewTranscriptionApp {
 
         try {
             // Determine the best supported audio format for ElevenLabs
-            let mimeType = 'audio/wav';
+            // Prefer WebM/Opus (widely supported and reliably playable); avoid audio/mp4
+            let mimeType = 'audio/webm;codecs=opus';
             
-            // Try different formats in order of preference for ElevenLabs compatibility
+            // Try different formats in order of reliability for STT
             const supportedTypes = [
-                'audio/wav',
-                'audio/mp4',
-                'audio/mpeg',
                 'audio/webm;codecs=opus',
                 'audio/webm',
-                'audio/ogg;codecs=opus'
+                'audio/ogg;codecs=opus',
+                'audio/mpeg',
+                'audio/wav'
             ];
             
             for (const type of supportedTypes) {
@@ -593,7 +993,13 @@ class InterviewTranscriptionApp {
                 }
             }
 
-            // Create new MediaRecorder for this speaker
+            // Store the detected MIME type for later use
+            this.currentAudioMimeType = mimeType;
+
+            // Create new MediaRecorder for this speaker (always fresh instance)
+            if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+                this.mediaRecorder.stop();
+            }
             this.mediaRecorder = new MediaRecorder(this.audioStream, {
                 mimeType: mimeType,
                 audioBitsPerSecond: 128000 // Higher quality for better transcription
@@ -608,12 +1014,12 @@ class InterviewTranscriptionApp {
             };
 
             this.mediaRecorder.onstop = () => {
-                console.log(`🛑 Recording stopped for speaker: ${this.currentSpeaker || 'No Speaker'}`);
+                console.log(`🛑 Recording stopped for speaker: ${this.currentSpeaker || 'Teacher'}`);
             };
 
             // Start recording with regular chunks
             this.mediaRecorder.start(100); // Request chunks every 100ms for better responsiveness
-            console.log(`🎤 Started recording for speaker: ${this.currentSpeaker || 'No Speaker'} using ${mimeType}`);
+            console.log(`🎤 Started recording for speaker: ${this.currentSpeaker || 'Teacher'} using ${mimeType}`);
 
         } catch (error) {
             console.error('Error starting speaker recording:', error);
@@ -635,9 +1041,10 @@ class InterviewTranscriptionApp {
         if (this.currentAudioChunks.length === 0) return;
 
         try {
-            // Create complete audio blob
-            const audioBlob = new Blob(this.currentAudioChunks, { type: 'audio/webm' });
-            console.log(`📎 Processing complete recording: ${audioBlob.size} bytes for speaker: ${this.currentSpeaker || 'No Speaker'}`);
+            // Create complete audio blob using the correct MIME type
+            const mimeType = this.currentAudioMimeType || 'audio/webm';
+            const audioBlob = new Blob(this.currentAudioChunks, { type: mimeType });
+            console.log(`📎 Processing complete recording: ${audioBlob.size} bytes (${mimeType}) for speaker: ${this.currentSpeaker || 'Teacher'}`);
 
             // Only transcribe if blob is substantial
             if (audioBlob.size > 5000) { // 5KB minimum for complete recordings
@@ -732,10 +1139,17 @@ class InterviewTranscriptionApp {
 
     async transcribeAudio(audioBlob, speaker, targetQuestionIndex = null) {
         try {
+            // Determine file extension from MIME type
+            let fileExtension = 'webm';
+            if (audioBlob.type.includes('wav')) fileExtension = 'wav';
+            else if (audioBlob.type.includes('mp4')) fileExtension = 'mp4';
+            else if (audioBlob.type.includes('mpeg')) fileExtension = 'mp3';
+            else if (audioBlob.type.includes('ogg')) fileExtension = 'ogg';
+            
             const formData = new FormData();
-            formData.append('audio', audioBlob, 'audio.webm');
+            formData.append('audio', audioBlob, `audio.${fileExtension}`);
 
-            console.log(`🌐 Sending ${audioBlob.size} bytes for transcription...`);
+            console.log(`🌐 Sending ${audioBlob.size} bytes (${audioBlob.type}) for transcription...`);
 
             const response = await fetch('/api/transcribe', {
                 method: 'POST',
@@ -754,7 +1168,7 @@ class InterviewTranscriptionApp {
                 this.removeTranscribingIndicator(speaker, questionIndex);
                 
                 const transcriptionEntry = {
-                    speaker: speaker || 'No Speaker',
+                    speaker: speaker || 'Teacher',
                     text: result.text,
                     timestamp: timestamp
                 };
@@ -764,7 +1178,7 @@ class InterviewTranscriptionApp {
                     // Current question - add to live transcriptionData and update display
                     this.transcriptionData.push(transcriptionEntry);
                     this.updateTranscriptionDisplay();
-                    console.log(`✅ Transcribed for current question ${questionIndex + 1}: ${speaker || 'No Speaker'}: "${result.text}"`);
+                    console.log(`✅ Transcribed for current question ${questionIndex + 1}: ${speaker || 'Teacher'}: "${result.text}"`);
                 } else {
                     // Previous question - add directly to stored question data (don't update display)
                     if (this.sessionData.questions[questionIndex]) {
@@ -772,7 +1186,7 @@ class InterviewTranscriptionApp {
                             this.sessionData.questions[questionIndex].transcription = [];
                         }
                         this.sessionData.questions[questionIndex].transcription.push(transcriptionEntry);
-                        console.log(`✅ Transcribed for previous question ${questionIndex + 1}: ${speaker || 'No Speaker'}: "${result.text}"`);
+                        console.log(`✅ Transcribed for previous question ${questionIndex + 1}: ${speaker || 'Teacher'}: "${result.text}"`);
                     }
                 }
                 
@@ -815,13 +1229,13 @@ class InterviewTranscriptionApp {
         if (questionIndex === this.sessionData.currentQuestionIndex) {
             // Current question - remove from live transcriptionData
             this.transcriptionData = this.transcriptionData.filter(entry => 
-                !(entry.isTranscribing && entry.speaker === (speaker || 'No Speaker'))
+                !(entry.isTranscribing && entry.speaker === (speaker || 'Teacher'))
             );
         } else {
             // Previous question - remove from stored question data
             if (this.sessionData.questions[questionIndex] && this.sessionData.questions[questionIndex].transcription) {
                 this.sessionData.questions[questionIndex].transcription = this.sessionData.questions[questionIndex].transcription.filter(entry => 
-                    !(entry.isTranscribing && entry.speaker === (speaker || 'No Speaker'))
+                    !(entry.isTranscribing && entry.speaker === (speaker || 'Teacher'))
                 );
             }
         }
@@ -868,44 +1282,84 @@ class InterviewTranscriptionApp {
         // Clear and rebuild transcription display
         this.transcriptionContainer.innerHTML = '';
 
+        let lastSpeaker = null;
+        let hasValidEntries = false;
+
         this.transcriptionData.forEach((entry, index) => {
             if (entry.text.trim()) {
-                const entryDiv = document.createElement('div');
-                entryDiv.className = `transcription-entry ${entry.speaker === 'No Speaker' ? 'no-speaker' : ''}`;
-                entryDiv.style.animation = 'slideIn 0.3s ease-out';
-
-                // Add special styling for transcribing entries
+                hasValidEntries = true;
+                
+                // Handle transcribing entries as centered status messages
                 if (entry.isTranscribing) {
-                    entryDiv.style.opacity = '0.7';
-                    entryDiv.style.fontStyle = 'italic';
+                    const transcribingDiv = document.createElement('div');
+                    transcribingDiv.className = 'no-transcription transcribing-status';
+                    transcribingDiv.innerHTML = `
+                        <i class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i>
+                        ${entry.text}
+                    `;
+                    this.transcriptionContainer.appendChild(transcribingDiv);
+                    return; // Skip regular transcript entry processing
+                }
+                
+                // Add gap between different speakers (only for completed entries)
+                if (lastSpeaker && lastSpeaker !== entry.speaker) {
+                    const gapDiv = document.createElement('div');
+                    gapDiv.className = 'speaker-gap';
+                    gapDiv.style.height = '16px';
+                    gapDiv.style.marginBottom = '8px';
+                    this.transcriptionContainer.appendChild(gapDiv);
                 }
 
+                const entryDiv = document.createElement('div');
+                entryDiv.className = `transcription-entry ${entry.speaker === 'Teacher' ? 'no-speaker' : ''}`;
+                entryDiv.setAttribute('data-speaker', entry.speaker);
+                entryDiv.style.animation = 'slideIn 0.3s ease-out';
+
                 const speakerDiv = document.createElement('div');
-                speakerDiv.className = `transcription-speaker ${entry.speaker === 'No Speaker' ? 'no-speaker' : ''}`;
+                speakerDiv.className = `transcription-speaker ${entry.speaker === 'Teacher' ? 'no-speaker' : ''}`;
                 speakerDiv.innerHTML = `<i class="fas fa-user"></i> ${entry.speaker}`;
 
                 const textDiv = document.createElement('div');
                 textDiv.className = 'transcription-text';
-                
-                if (entry.isTranscribing) {
-                    textDiv.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${entry.text}`;
-                } else {
-                    textDiv.textContent = entry.text;
-                }
-
-                const timestampDiv = document.createElement('div');
-                timestampDiv.className = 'transcription-timestamp';
-                timestampDiv.textContent = new Date(entry.timestamp).toLocaleTimeString();
+                textDiv.textContent = entry.text;
 
                 entryDiv.appendChild(speakerDiv);
                 entryDiv.appendChild(textDiv);
-                entryDiv.appendChild(timestampDiv);
                 this.transcriptionContainer.appendChild(entryDiv);
+
+                lastSpeaker = entry.speaker;
             }
         });
 
+        // Show placeholder if no valid entries
+        if (!hasValidEntries) {
+            this.showTranscriptionPlaceholder();
+        }
+
         // Scroll to bottom
         this.transcriptionContainer.scrollTop = this.transcriptionContainer.scrollHeight;
+    }
+
+    showTranscriptionPlaceholder(message = 'Start recording to see transcription...') {
+        const placeholderDiv = document.createElement('div');
+        placeholderDiv.className = 'no-transcription';
+        placeholderDiv.innerHTML = message;
+        this.transcriptionContainer.appendChild(placeholderDiv);
+    }
+
+    showWaitingForTranscription() {
+        this.transcriptionContainer.innerHTML = '';
+        const waitingDiv = document.createElement('div');
+        waitingDiv.className = 'no-transcription waiting-transcription';
+        waitingDiv.innerHTML = `
+            <div class="waiting-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+            </div>
+            <div class="waiting-text">
+                Waiting for final transcription...
+            </div>
+        `;
+        this.transcriptionContainer.appendChild(waitingDiv);
     }
 
     exportToCSV() {
@@ -1248,7 +1702,10 @@ ${plainText.replace(/[{}\\]/g, '').replace(/\n/g, '\\par\n')}
             state: this.sessionData.state,
             metadata: { ...this.sessionData.metadata },
             analysisAvailable: this.sessionData.state === "analyzed",
-            analysis: this.sessionData.analysis || null
+            // Support both array and legacy single analysis
+            analyses: this.sessionData.analyses || [],
+            latestAnalysis: this.sessionData.latestAnalysis || null,
+            analysis: this.sessionData.analysis || null // Keep for backward compatibility
         };
     }
 
@@ -1310,7 +1767,7 @@ ${plainText.replace(/[{}\\]/g, '').replace(/\n/g, '\\par\n')}
                 <div class="question-header">
                     <span class="question-number">Question 1</span>
                     <button type="button" class="remove-question-btn" onclick="app.removeQuestionInput(0)" style="display: none;">
-                        <i class="fas fa-times"></i>
+                        <i class="fas fa-trash"></i>
                     </button>
                 </div>
                 <textarea class="question-input" placeholder="Enter your first interview question here..." rows="2"></textarea>
@@ -1765,6 +2222,9 @@ ${plainText.replace(/[{}\\]/g, '').replace(/\n/g, '\\par\n')}
                 
                 await this.stopCurrentRecordingAndProcess(this.currentSpeaker);
                 
+                // Show waiting message in transcription container with spinner
+                this.showWaitingForTranscription();
+                
                 loadingOverlay.querySelector('.loading-text').textContent = 'Waiting for final transcription...';
                 loadingOverlay.querySelector('.loading-bar').style.width = '40%';
                 
@@ -1857,6 +2317,19 @@ ${plainText.replace(/[{}\\]/g, '').replace(/\n/g, '\\par\n')}
                 setTimeout(() => {
                     this.sessionCompletionSection.scrollIntoView({ behavior: 'smooth' });
                 }, 100);
+
+                // Load transcript editor with full transcript text
+                this.loadTranscriptEditor();
+                // Load any previously saved current transcript
+                const id = this.sessionData?.sessionId;
+                if (id && this.transcriptEditor) {
+                    const currentKey = `transcript_current_${id}`;
+                    const draftKey = `transcript_draft_${id}`;
+                    const saved = localStorage.getItem(currentKey);
+                    const draft = localStorage.getItem(draftKey);
+                    if (saved) this.transcriptEditor.value = saved;
+                    else if (draft) this.transcriptEditor.value = draft;
+                }
             }
 
             // Show export buttons
@@ -1895,15 +2368,12 @@ ${plainText.replace(/[{}\\]/g, '').replace(/\n/g, '\\par\n')}
 
         console.log('➡️ Starting next question...');
 
-        // Process final transcription for current question in background (don't wait)
+        // Process final transcription for current question and WAIT to avoid race conditions
         if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
-            console.log('🔄 Processing final transcription in background...');
-            // Store the current question index before incrementing
+            console.log('🔄 Processing final transcription before moving to next question...');
             const previousQuestionIndex = this.sessionData.currentQuestionIndex;
-            // Don't await - let it run in background, but pass the correct question index
-            this.stopCurrentRecordingAndProcess(this.currentSpeaker, previousQuestionIndex).then(() => {
-                console.log(`✅ Background transcription completed for previous question ${previousQuestionIndex + 1}`);
-            });
+            await this.stopCurrentRecordingAndProcess(this.currentSpeaker, previousQuestionIndex);
+            console.log(`✅ Transcription completed for previous question ${previousQuestionIndex + 1}`);
         }
 
         // Save current question data immediately (filter out any pending transcriptions)
@@ -1995,7 +2465,25 @@ ${plainText.replace(/[{}\\]/g, '').replace(/\n/g, '\\par\n')}
         });
 
         console.log(`➡️ Moved to question ${this.sessionData.currentQuestionIndex + 1}`);
+
+        // Immediately switch back to Teacher and resume recording for the new question
+        try {
+            if (this.isRecording) {
+                // Main stream is active; just start a new recorder for Teacher
+                await this.selectSpeaker('Teacher');
+            } else {
+                // Main stream stopped; start it and auto-record for Teacher
+                this.currentSpeaker = 'Teacher';
+                this.updateSpeakerUI('Teacher');
+                await this.startMainRecording();
+            }
+            console.log('🎙️ Recording ready for next question as Teacher');
+        } catch (err) {
+            console.error('❌ Failed to start recording for next question:', err);
+        }
     }
+
+    async saveCurrentQuestionToServer() { /* no-op: using localStorage only */ }
 
     editFlexibleQuestion() {
         const currentQuestion = this.sessionData.questions[this.sessionData.currentQuestionIndex];
@@ -2092,73 +2580,262 @@ ${plainText.replace(/[{}\\]/g, '').replace(/\n/g, '\\par\n')}
             }
         });
 
-        // Create the review section with improved styling
+        // Create question cards matching the history page layout
         this.questionsReview.innerHTML = `
-            <div class="review-section-header">
-                <div>
-                    <h4><i class="fas fa-edit"></i> Review & Edit Questions</h4>
-                    <p>Review and edit your questions before running the analysis. This helps ensure accurate context for the AI analysis.</p>
-                </div>
-            </div>
-            <div class="questions-review-content">
+            <div class="question-transcripts">
                 ${this.sessionData.questions.map((question, index) => `
-                    <div class="question-review-item">
-                        <div class="question-review-header">
-                            <h5><i class="fas fa-question-circle"></i> Question ${index + 1}</h5>
-                            <span class="question-status">Completed</span>
-                        </div>
-                        <textarea 
-                            class="question-review-input" 
-                            data-question-index="${index}"
-                            placeholder="Enter your question here..."
-                        >${question.question || `Question ${index + 1}`}</textarea>
-                        
-                        <div class="transcription-preview">
-                            <div class="preview-header">
-                                <h6><i class="fas fa-comments"></i> Responses (${question.transcription ? question.transcription.length : 0})</h6>
-                                <button class="toggle-responses-btn" onclick="app.toggleQuestionResponses(${index})">
-                                    <i class="fas fa-eye"></i> Hide Responses
+                    <div class="question-transcript-card">
+                        <div class="question-transcript-header">
+                            <div class="question-info">
+                                <h4><i class="fas fa-question-circle"></i> Question ${index + 1}</h4>
+                                <div class="question-text-display" id="questionTextDisplay-session-${index}">
+                                    ${question.question || `Question ${index + 1}`}
+                                </div>
+                                <textarea 
+                                    class="question-text-edit" 
+                                    id="questionTextEdit-session-${index}"
+                                    style="display: none;"
+                                    rows="2"
+                                    placeholder="Enter question text..."
+                                >${question.question || `Question ${index + 1}`}</textarea>
+                            </div>
+                            <div class="question-header-buttons">
+                                <button class="btn btn-outline btn-sm" onclick="app.toggleQuestionEdit(${index})">
+                                    <i class="fas fa-pen"></i> Edit Question
+                                </button>
+                                <button class="btn btn-outline btn-sm" onclick="app.toggleQuestionTranscriptEdit(${index})">
+                                    <i class="fas fa-pen"></i> Edit Transcript
                                 </button>
                             </div>
-                            <div id="question-responses-${index}" class="preview-content">
-                                ${question.transcription && question.transcription.length > 0 
-                                    ? question.transcription.map(entry => `
-                                        <div class="preview-entry">
-                                            <strong>${entry.speaker}:</strong> ${entry.text}
-                                        </div>
-                                    `).join('')
-                                    : '<div class="preview-entry" style="text-align: center; font-style: italic; color: var(--text-secondary);">No responses recorded for this question</div>'
-                                }
-                            </div>
-                            <div class="question-review-stats">
-                                ${question.transcription ? question.transcription.length : 0} responses recorded
-                            </div>
+                        </div>
+                        
+                        <div class="question-transcript-display" id="questionTranscriptDisplay-session-${index}">
+                            ${this.formatQuestionTranscription(question.transcription || [])}
+                        </div>
+                        
+                        <textarea 
+                            id="questionTranscriptEditor-session-${index}" 
+                            class="question-transcript-textarea"
+                            rows="8" 
+                            placeholder="Edit transcript for Question ${index + 1}..." 
+                            style="display:none;"
+                        >${this.buildQuestionTranscriptText(question)}</textarea>
+                        
+                        <div class="question-transcript-actions" id="questionTranscriptActions-session-${index}" style="display:none;">
+                            <button class="btn btn-primary" onclick="app.saveQuestionTranscript(${index})">
+                                <i class="fas fa-save"></i> Save
+                            </button>
+                            <button class="btn btn-outline" onclick="app.cancelQuestionTranscriptEdit(${index})">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
                         </div>
                     </div>
                 `).join('')}
             </div>
         `;
 
-        // Add event listeners for question editing
-        const questionInputs = this.questionsReview.querySelectorAll('.question-review-input');
-        questionInputs.forEach(input => {
-            input.addEventListener('blur', (e) => {
-                const questionIndex = parseInt(e.target.dataset.questionIndex);
-                const newQuestion = e.target.value.trim();
-                if (newQuestion && this.sessionData.questions[questionIndex]) {
-                    this.sessionData.questions[questionIndex].question = newQuestion;
-                    console.log(`✅ Updated question ${questionIndex + 1}: ${newQuestion}`);
-                    
-                    // Auto-save the change
-                    this.autoSaveSession('question_edit');
-                }
-            });
-        });
+        // No event listeners needed since we use onclick for edit buttons
 
         // Force update the transcription display to ensure latest data is shown
         this.updateTranscriptionDisplay();
 
         console.log('✅ Questions review setup complete');
+    }
+
+    editQuestion(questionIndex) {
+        const question = this.sessionData.questions[questionIndex];
+        if (!question) return;
+
+        const newQuestionText = prompt(`Edit Question ${questionIndex + 1}:`, question.question || `Question ${questionIndex + 1}`);
+        if (newQuestionText && newQuestionText.trim()) {
+            question.question = newQuestionText.trim();
+            console.log(`✅ Updated question ${questionIndex + 1}: ${newQuestionText}`);
+            
+            // Auto-save the change
+            this.autoSaveSession('question_edit');
+            
+            // Refresh the questions review display
+            this.setupQuestionsReview();
+        }
+    }
+
+    formatQuestionTranscription(transcription) {
+        if (!transcription || transcription.length === 0) {
+            return '<p class="no-data">No transcription data available for this question.</p>';
+        }
+        
+        const filteredTranscription = transcription.filter(entry => entry.text && entry.text.trim() && !entry.isTranscribing);
+        let lastSpeaker = null;
+        
+        return filteredTranscription
+            .map((entry, index) => {
+                let html = '';
+                
+                // Add gap between different speakers
+                if (lastSpeaker && lastSpeaker !== entry.speaker) {
+                    html += '<div class="speaker-gap" style="height: 16px; margin-bottom: 8px;"></div>';
+                }
+                
+                html += `
+                    <div class="transcript-entry" data-speaker="${entry.speaker}">
+                        <div class="transcript-speaker">
+                            <i class="fas fa-user"></i> ${entry.speaker}
+                        </div>
+                        <div class="transcript-text">${entry.text}</div>
+                    </div>
+                `;
+                
+                lastSpeaker = entry.speaker;
+                return html;
+            }).join('');
+    }
+
+    buildQuestionTranscriptText(question) {
+        if (!question.transcription || question.transcription.length === 0) {
+            return '';
+        }
+        
+        const filteredTranscription = question.transcription.filter(entry => entry.text && entry.text.trim() && !entry.isTranscribing);
+        return filteredTranscription
+            .map(entry => `${entry.speaker}: ${entry.text}`)
+            .join('\n\n');
+    }
+
+    toggleQuestionEdit(questionIndex) {
+        const displayDiv = document.getElementById(`questionTextDisplay-session-${questionIndex}`);
+        const editTextarea = document.getElementById(`questionTextEdit-session-${questionIndex}`);
+        
+        // Find the edit button by looking for the button that contains "Edit Question"
+        const editButtons = document.querySelectorAll(`[onclick="app.toggleQuestionEdit(${questionIndex})"]`);
+        const editButton = editButtons[0];
+        
+        if (displayDiv && editTextarea) {
+            if (displayDiv.style.display === 'none') {
+                // Currently editing, switch to display
+                displayDiv.style.display = 'block';
+                editTextarea.style.display = 'none';
+                if (editButton) {
+                    editButton.innerHTML = '<i class="fas fa-pen"></i> Edit Question';
+                }
+            } else {
+                // Currently displaying, switch to edit
+                displayDiv.style.display = 'none';
+                editTextarea.style.display = 'block';
+                editTextarea.focus();
+                if (editButton) {
+                    editButton.innerHTML = '<i class="fas fa-save"></i> Save Question';
+                }
+            }
+        }
+    }
+
+    toggleQuestionTranscriptEdit(questionIndex) {
+        const displayDiv = document.getElementById(`questionTranscriptDisplay-session-${questionIndex}`);
+        const editTextarea = document.getElementById(`questionTranscriptEditor-session-${questionIndex}`);
+        const actionsDiv = document.getElementById(`questionTranscriptActions-session-${questionIndex}`);
+        
+        // Find the edit transcript button
+        const editButtons = document.querySelectorAll(`[onclick="app.toggleQuestionTranscriptEdit(${questionIndex})"]`);
+        const editButton = editButtons[0];
+        
+        if (displayDiv && editTextarea && actionsDiv) {
+            if (displayDiv.style.display === 'none') {
+                // Currently editing, save and switch to display
+                this.saveQuestionTranscript(questionIndex);
+                if (editButton) {
+                    editButton.innerHTML = '<i class="fas fa-pen"></i> Edit Transcript';
+                }
+            } else {
+                // Currently displaying, switch to edit
+                displayDiv.style.display = 'none';
+                editTextarea.style.display = 'block';
+                actionsDiv.style.display = 'block';
+                editTextarea.focus();
+                if (editButton) {
+                    editButton.innerHTML = '<i class="fas fa-eye"></i> View Transcript';
+                }
+            }
+        }
+    }
+
+    saveQuestionTranscript(questionIndex) {
+        const editTextarea = document.getElementById(`questionTranscriptEditor-session-${questionIndex}`);
+        const displayDiv = document.getElementById(`questionTranscriptDisplay-session-${questionIndex}`);
+        const actionsDiv = document.getElementById(`questionTranscriptActions-session-${questionIndex}`);
+        
+        // Find the edit transcript button to reset its text
+        const editButtons = document.querySelectorAll(`[onclick="app.toggleQuestionTranscriptEdit(${questionIndex})"]`);
+        const editButton = editButtons[0];
+        
+        if (editTextarea && displayDiv && actionsDiv) {
+            const newTranscriptText = editTextarea.value;
+            
+            // Parse the transcript text back into entries
+            const entries = newTranscriptText.split('\n\n').filter(line => line.trim()).map(line => {
+                const colonIndex = line.indexOf(':');
+                if (colonIndex > 0) {
+                    const speaker = line.substring(0, colonIndex).trim();
+                    const text = line.substring(colonIndex + 1).trim();
+                    return {
+                        speaker: speaker,
+                        text: text,
+                        timestamp: new Date().toISOString()
+                    };
+                }
+                return null;
+            }).filter(entry => entry !== null);
+            
+            // Update the question's transcription
+            if (this.sessionData.questions[questionIndex]) {
+                this.sessionData.questions[questionIndex].transcription = entries;
+                
+                // Update display
+                displayDiv.innerHTML = this.formatQuestionTranscription(entries);
+                
+                // Switch back to display mode
+                displayDiv.style.display = 'block';
+                editTextarea.style.display = 'none';
+                actionsDiv.style.display = 'none';
+                
+                // Reset button text
+                if (editButton) {
+                    editButton.innerHTML = '<i class="fas fa-pen"></i> Edit Transcript';
+                }
+                
+                // Auto-save
+                this.autoSaveSession('transcript_edit');
+                
+                console.log(`✅ Updated transcript for question ${questionIndex + 1}`);
+            }
+        }
+    }
+
+    cancelQuestionTranscriptEdit(questionIndex) {
+        const displayDiv = document.getElementById(`questionTranscriptDisplay-session-${questionIndex}`);
+        const editTextarea = document.getElementById(`questionTranscriptEditor-session-${questionIndex}`);
+        const actionsDiv = document.getElementById(`questionTranscriptActions-session-${questionIndex}`);
+        
+        // Find the edit transcript button to reset its text
+        const editButtons = document.querySelectorAll(`[onclick="app.toggleQuestionTranscriptEdit(${questionIndex})"]`);
+        const editButton = editButtons[0];
+        
+        if (displayDiv && editTextarea && actionsDiv) {
+            // Restore original text
+            const question = this.sessionData.questions[questionIndex];
+            if (question) {
+                editTextarea.value = this.buildQuestionTranscriptText(question);
+            }
+            
+            // Switch back to display mode
+            displayDiv.style.display = 'block';
+            editTextarea.style.display = 'none';
+            actionsDiv.style.display = 'none';
+            
+            // Reset button text
+            if (editButton) {
+                editButton.innerHTML = '<i class="fas fa-pen"></i> Edit Transcript';
+            }
+        }
     }
 
     toggleQuestionResponses(questionIndex) {
@@ -2182,9 +2859,8 @@ ${plainText.replace(/[{}\\]/g, '').replace(/\n/g, '\\par\n')}
             return;
         }
         
-        // For question-by-question analysis, the prompt is used as-is from the textarea
-        // Essential context (question, student names) is added dynamically per question
-        console.log('✅ Session analysis prompt ready for question-by-question analysis');
+        // Prompt is ready - user will use "Load Saved Prompt" button to select prompts
+        console.log('✅ Session analysis prompt ready - user will select prompts manually');
     }
 
     async runSessionAnalysis() {
@@ -2287,7 +2963,29 @@ ${plainText.replace(/[{}\\]/g, '').replace(/\n/g, '\\par\n')}
             
             // Update session state
             this.sessionData.state = 'analyzed';
+            
+            // Initialize analyses array if it doesn't exist
+            if (!this.sessionData.analyses) {
+                this.sessionData.analyses = [];
+            }
+            
+            // Add new analysis to the array with indexing
+            const analysisIndex = this.sessionData.analyses.length + 1;
+            const newAnalysis = {
+                id: Date.now().toString(),
+                index: analysisIndex,
+                result: finalAnalysis,
+                prompt: this.sessionAnalysisPrompt.value,
+                timestamp: new Date().toISOString()
+            };
+            
+            this.sessionData.analyses.push(newAnalysis);
+            this.sessionData.latestAnalysis = newAnalysis;
+            
+            // Keep legacy field for compatibility
             this.sessionData.analysis = finalAnalysis;
+            
+            console.log(`✅ Analysis #${analysisIndex} saved to session data`);
             
             // Auto-save with analysis
             await this.autoSaveSession('analysis_complete');
@@ -2334,7 +3032,7 @@ ${plainText.replace(/[{}\\]/g, '').replace(/\n/g, '\\par\n')}
 
         const finalPrompt = basePrompt + essentialContext;
 
-        // Make API call for this specific question
+        // Make API call only for analysis (server will not persist session data)
         const response = await fetch('/api/analyze', {
             method: 'POST',
             headers: {
@@ -2345,7 +3043,6 @@ ${plainText.replace(/[{}\\]/g, '').replace(/\n/g, '\\par\n')}
                 prompt: finalPrompt,
                 question: questionData.question,
                 studentNames: this.sessionData.students,
-                questionIndex: questionIndex,
                 timestamp: new Date().toISOString()
             })
         });
@@ -2421,31 +3118,64 @@ ${plainText.replace(/[{}\\]/g, '').replace(/\n/g, '\\par\n')}
     }
 
     convertMarkdownToHtml(markdown) {
+        if (!markdown) return '';
+        
         let html = markdown;
         
-        // Convert headers
-        html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
-        html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
-        html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+        // Convert horizontal rules
+        html = html.replace(/^---+$/gm, '<hr>');
         
-        // Convert bold and italic
+        // Convert headers (with proper spacing)
+        html = html.replace(/^### (.*$)/gim, '<h3 class="analysis-h3">$1</h3>');
+        html = html.replace(/^## (.*$)/gim, '<h2 class="analysis-h2">$1</h2>');
+        html = html.replace(/^# (.*$)/gim, '<h1 class="analysis-h1">$1</h1>');
+        
+        // Convert bold and italic text
         html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
         
-        // Convert lists
-        html = html.replace(/^\* (.*$)/gim, '<li>$1</li>');
-        html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+        // Convert bullet lists (handle multiple patterns)
+        html = html.replace(/^- (.*$)/gim, '<li class="analysis-bullet">$1</li>');
+        html = html.replace(/^\* (.*$)/gim, '<li class="analysis-bullet">$1</li>');
+        html = html.replace(/^• (.*$)/gim, '<li class="analysis-bullet">$1</li>');
         
-        // Convert line breaks
-        html = html.replace(/\n\n/g, '</p><p>');
+        // Convert numbered lists
+        html = html.replace(/^\d+\. (.*$)/gim, '<li class="analysis-numbered">$1</li>');
+        
+        // Wrap consecutive list items in proper ul/ol tags
+        html = html.replace(/(<li class="analysis-bullet">.*?<\/li>)(\s*<li class="analysis-bullet">.*?<\/li>)*/gs, (match) => {
+            return '<ul class="analysis-list">' + match + '</ul>';
+        });
+        html = html.replace(/(<li class="analysis-numbered">.*?<\/li>)(\s*<li class="analysis-numbered">.*?<\/li>)*/gs, (match) => {
+            return '<ol class="analysis-list">' + match + '</ol>';
+        });
+        
+        // Convert code blocks and inline code
+        html = html.replace(/```(.*?)```/gs, '<pre class="analysis-code">$1</pre>');
+        html = html.replace(/`(.*?)`/g, '<code class="analysis-inline-code">$1</code>');
+        
+        // Convert blockquotes
+        html = html.replace(/^> (.*$)/gim, '<blockquote class="analysis-quote">$1</blockquote>');
+        
+        // Handle double line breaks as paragraph breaks
+        html = html.replace(/\n\n/g, '</p><p class="analysis-paragraph">');
+        
+        // Handle single line breaks as <br> within paragraphs
         html = html.replace(/\n/g, '<br>');
         
         // Wrap in paragraphs
-        html = '<p>' + html + '</p>';
+        html = '<p class="analysis-paragraph">' + html + '</p>';
         
-        // Clean up empty paragraphs
-        html = html.replace(/<p><\/p>/g, '');
-        html = html.replace(/<p><br><\/p>/g, '');
+        // Clean up empty paragraphs and fix formatting
+        html = html.replace(/<p class="analysis-paragraph"><\/p>/g, '');
+        html = html.replace(/<p class="analysis-paragraph"><br><\/p>/g, '');
+        html = html.replace(/<p class="analysis-paragraph">(<h[1-6])/g, '$1');
+        html = html.replace(/(<\/h[1-6]>)<\/p>/g, '$1');
+        html = html.replace(/<p class="analysis-paragraph">(<ul|<ol|<hr|<blockquote)/g, '$1');
+        html = html.replace(/(<\/ul>|<\/ol>|<hr>|<\/blockquote>)<\/p>/g, '$1');
+        
+        // Fix nested formatting issues
+        html = html.replace(/<br><\/p><p class="analysis-paragraph">/g, '</p><p class="analysis-paragraph">');
         
         return html;
     }
