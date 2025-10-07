@@ -205,7 +205,7 @@ ${conversationText}
 Please provide a comprehensive analysis based on the prompt above.`;
 
         const completion = await openai.chat.completions.create({
-          model: "gpt-4.1-mini", // Using GPT-4 for high-quality analysis
+          model: "gpt-4.1", // Using GPT-4 for high-quality analysis
           messages: [
             {
               role: "system",
@@ -228,7 +228,7 @@ Please provide a comprehensive analysis based on the prompt above.`;
         res.json({
           success: true,
           analysis: analysis,
-          model: "gpt-4.1-mini",
+          model: "gpt-4.1",
           timestamp: new Date().toISOString()
         });
 
