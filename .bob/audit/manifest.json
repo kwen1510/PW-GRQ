@@ -1,0 +1,139 @@
+{
+  "schemaVersion": "bob/project-audit-manifest/v1",
+  "projectId": "pw-grq",
+  "mode": "build",
+  "masterGuide": {
+    "id": "bob/master-audit-and-crisis-documentation",
+    "version": "1.0"
+  },
+  "canonicalPaths": {
+    "auditIndex": "docs/bob/AUDIT-INDEX.md",
+    "dataRegister": "docs/bob/DATA-REGISTER.md",
+    "crisisRunbook": "docs/bob/CRISIS-RUNBOOK.md",
+    "evidenceIndex": ".bob/evidence/index.json",
+    "decisions": ".bob/decisions/",
+    "workflowHistory": ".bob/workflow/history/"
+  },
+  "auditFamilies": [
+    {
+      "auditId": "product-change",
+      "title": "Product and change",
+      "status": "not-assessed",
+      "owner": "unassigned",
+      "evidencePaths": [
+        "docs/bob/REQUIREMENTS.md",
+        "docs/bob/APP-MAP.md",
+        ".bob/workflow/history/"
+      ]
+    },
+    {
+      "auditId": "identity-access",
+      "title": "Identity and access",
+      "status": "not-assessed",
+      "owner": "unassigned",
+      "evidencePaths": [
+        "docs/bob/SECURITY.md",
+        ".bob/evidence/security/",
+        ".bob/evidence/migration/"
+      ]
+    },
+    {
+      "auditId": "architecture-security",
+      "title": "Architecture and security",
+      "status": "not-assessed",
+      "owner": "unassigned",
+      "evidencePaths": [
+        "docs/bob/SECURITY.md",
+        ".bob/evidence/security/"
+      ]
+    },
+    {
+      "auditId": "privacy-data",
+      "title": "Privacy and data",
+      "status": "not-assessed",
+      "owner": "unassigned",
+      "evidencePaths": [
+        "docs/bob/DATA-REGISTER.md",
+        ".bob/decisions/"
+      ]
+    },
+    {
+      "auditId": "software-supply-chain",
+      "title": "Software supply chain",
+      "status": "not-assessed",
+      "owner": "unassigned",
+      "evidencePaths": [
+        ".bob/evidence/security/sbom/",
+        ".bob/evidence/security/dependencies/"
+      ]
+    },
+    {
+      "auditId": "reliability-capacity",
+      "title": "Reliability and capacity",
+      "status": "not-assessed",
+      "owner": "unassigned",
+      "evidencePaths": [
+        "docs/bob/CAPACITY.md",
+        ".bob/evidence/reliability/"
+      ]
+    },
+    {
+      "auditId": "provider-cost",
+      "title": "Provider and cost",
+      "status": "not-assessed",
+      "owner": "unassigned",
+      "evidencePaths": [
+        ".bob/providers/inventory.json",
+        "docs/bob/RELEASE.md"
+      ]
+    },
+    {
+      "auditId": "release-operations",
+      "title": "Release and operations",
+      "status": "not-assessed",
+      "owner": "unassigned",
+      "evidencePaths": [
+        "docs/bob/RELEASE.md",
+        ".bob/evidence/staging/",
+        ".bob/evidence/operations/",
+        ".bob/evidence/production/"
+      ]
+    },
+    {
+      "auditId": "incident-investigation",
+      "title": "Incident and investigation",
+      "status": "not-assessed",
+      "owner": "unassigned",
+      "evidencePaths": [
+        "docs/bob/CRISIS-RUNBOOK.md",
+        ".bob/evidence/incidents/"
+      ]
+    },
+    {
+      "auditId": "external-compliance",
+      "title": "External and compliance",
+      "status": "not-assessed",
+      "owner": "unassigned",
+      "evidencePaths": [
+        "docs/bob/ASSURANCE.md",
+        ".bob/evidence/acceptance/"
+      ]
+    }
+  ],
+  "crisisReadiness": {
+    "incidentOwner": "unassigned",
+    "dpoLegalContact": "unassigned",
+    "institutionalContact": "unassigned",
+    "restrictedEvidenceLocation": "unassigned",
+    "notificationAuthority": "human-only",
+    "automationProfile": "prepare-preserve-test-draft"
+  },
+  "prohibitedData": [
+    "secret-values",
+    "tokens-or-session-values",
+    "raw-student-content",
+    "unrestricted-production-logs"
+  ],
+  "generatedAt": "2026-08-26T04:18:39.154Z",
+  "digest": "sha256:8a4fe7cd38f42af8753bb1d410667d4adcdf5b82b31f1f4810c07b349627cd15"
+}

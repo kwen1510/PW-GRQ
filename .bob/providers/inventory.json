@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "bob/provider-inventory/v1",
+  "projectId": "pw-grq",
+  "providers": [],
+  "classification": {
+    "firebaseRules": false,
+    "sqlRls": false,
+    "categoriesDistinct": true
+  },
+  "secretValuesRead": false,
+  "providerAccessed": false,
+  "generatedAt": "2026-08-26T04:18:39.154Z"
+}

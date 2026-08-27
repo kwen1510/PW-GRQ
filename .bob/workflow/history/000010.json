@@ -1,0 +1,198 @@
+{
+  "schemaVersion": "bob/project-workflow-state/v1",
+  "projectId": "pw-grq",
+  "sequence": 10,
+  "currentStage": "scale-contract",
+  "status": "blocked",
+  "sourceRevision": "sha256:f7266155a3235462f269dfe78bbcdb3f4516931d9fe8bc2e972861a4a8c8b2e4",
+  "configurationDigest": "sha256:b137ca00109cf3074f17e5c9211f43af5ffc53e65db678eab0b1f3daebfb818f",
+  "workflowDefinitionDigest": "sha256:e540f86e005a815cdf97d923b486ef1bd1a62d8e6de1ca3297559a85fcfdd6d0",
+  "activeTaskIds": [
+    "bob-conversation"
+  ],
+  "completedGateIds": [],
+  "gates": [
+    {
+      "gateId": "scale-contract",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ],
+      "status": "pending",
+      "evidenceIds": [],
+      "sourceRevision": "sha256:ecbdc72117844c64b9c0232005ced65a2f90870235a32ff3a517243aa4baacf8",
+      "configurationDigest": "sha256:7a266267b3607fbb905574b494281dc4f94467efebae634edd27bcde30a6f30b"
+    },
+    {
+      "gateId": "characterization-tests",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ],
+      "status": "pending",
+      "evidenceIds": [],
+      "sourceRevision": "sha256:ecbdc72117844c64b9c0232005ced65a2f90870235a32ff3a517243aa4baacf8",
+      "configurationDigest": "sha256:7a266267b3607fbb905574b494281dc4f94467efebae634edd27bcde30a6f30b"
+    },
+    {
+      "gateId": "serious-local-build",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ],
+      "status": "pending",
+      "evidenceIds": [],
+      "sourceRevision": "sha256:ecbdc72117844c64b9c0232005ced65a2f90870235a32ff3a517243aa4baacf8",
+      "configurationDigest": "sha256:7a266267b3607fbb905574b494281dc4f94467efebae634edd27bcde30a6f30b"
+    },
+    {
+      "gateId": "local-assurance",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ],
+      "status": "pending",
+      "evidenceIds": [],
+      "sourceRevision": "sha256:ecbdc72117844c64b9c0232005ced65a2f90870235a32ff3a517243aa4baacf8",
+      "configurationDigest": "sha256:7a266267b3607fbb905574b494281dc4f94467efebae634edd27bcde30a6f30b"
+    },
+    {
+      "gateId": "agentic-qa-adversarial",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ],
+      "status": "pending",
+      "evidenceIds": [],
+      "sourceRevision": "sha256:ecbdc72117844c64b9c0232005ced65a2f90870235a32ff3a517243aa4baacf8",
+      "configurationDigest": "sha256:7a266267b3607fbb905574b494281dc4f94467efebae634edd27bcde30a6f30b"
+    },
+    {
+      "gateId": "local-load-plan",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ],
+      "status": "pending",
+      "evidenceIds": [],
+      "sourceRevision": "sha256:ecbdc72117844c64b9c0232005ced65a2f90870235a32ff3a517243aa4baacf8",
+      "configurationDigest": "sha256:7a266267b3607fbb905574b494281dc4f94467efebae634edd27bcde30a6f30b"
+    },
+    {
+      "gateId": "local-load",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ],
+      "status": "pending",
+      "evidenceIds": [],
+      "sourceRevision": "sha256:ecbdc72117844c64b9c0232005ced65a2f90870235a32ff3a517243aa4baacf8",
+      "configurationDigest": "sha256:7a266267b3607fbb905574b494281dc4f94467efebae634edd27bcde30a6f30b"
+    },
+    {
+      "gateId": "provider-authority",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ],
+      "status": "pending",
+      "evidenceIds": [],
+      "sourceRevision": "sha256:ecbdc72117844c64b9c0232005ced65a2f90870235a32ff3a517243aa4baacf8",
+      "configurationDigest": "sha256:7a266267b3607fbb905574b494281dc4f94467efebae634edd27bcde30a6f30b"
+    },
+    {
+      "gateId": "staging-predeploy-bind",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ],
+      "status": "pending",
+      "evidenceIds": [],
+      "sourceRevision": "sha256:ecbdc72117844c64b9c0232005ced65a2f90870235a32ff3a517243aa4baacf8",
+      "configurationDigest": "sha256:7a266267b3607fbb905574b494281dc4f94467efebae634edd27bcde30a6f30b"
+    },
+    {
+      "gateId": "staging-deployment-identity",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ],
+      "status": "pending",
+      "evidenceIds": [],
+      "sourceRevision": "sha256:ecbdc72117844c64b9c0232005ced65a2f90870235a32ff3a517243aa4baacf8",
+      "configurationDigest": "sha256:7a266267b3607fbb905574b494281dc4f94467efebae634edd27bcde30a6f30b"
+    },
+    {
+      "gateId": "hosted-staging-gates",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ],
+      "status": "pending",
+      "evidenceIds": [],
+      "sourceRevision": "sha256:ecbdc72117844c64b9c0232005ced65a2f90870235a32ff3a517243aa4baacf8",
+      "configurationDigest": "sha256:7a266267b3607fbb905574b494281dc4f94467efebae634edd27bcde30a6f30b"
+    },
+    {
+      "gateId": "production-readiness",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ],
+      "status": "pending",
+      "evidenceIds": [],
+      "sourceRevision": "sha256:ecbdc72117844c64b9c0232005ced65a2f90870235a32ff3a517243aa4baacf8",
+      "configurationDigest": "sha256:7a266267b3607fbb905574b494281dc4f94467efebae634edd27bcde30a6f30b"
+    },
+    {
+      "gateId": "production-release",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ],
+      "status": "pending",
+      "evidenceIds": [],
+      "sourceRevision": "sha256:ecbdc72117844c64b9c0232005ced65a2f90870235a32ff3a517243aa4baacf8",
+      "configurationDigest": "sha256:7a266267b3607fbb905574b494281dc4f94467efebae634edd27bcde30a6f30b"
+    },
+    {
+      "gateId": "continuous-monitoring",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ],
+      "status": "pending",
+      "evidenceIds": [],
+      "sourceRevision": "sha256:ecbdc72117844c64b9c0232005ced65a2f90870235a32ff3a517243aa4baacf8",
+      "configurationDigest": "sha256:7a266267b3607fbb905574b494281dc4f94467efebae634edd27bcde30a6f30b"
+    }
+  ],
+  "blockingItems": [
+    "Human decision H1 is required before this consequential boundary."
+  ],
+  "pendingHumanDecisions": [
+    "H1"
+  ],
+  "evidenceIndex": [],
+  "nextAction": "Present the named owner review with Bob's recommendation, then record the owner's decision.",
+  "transition": {
+    "type": "inputs-reconciled"
+  },
+  "previousStateDigest": "sha256:5ba2c381cfaef51d181b6519dbbca2d6233f126df727197f774bff2a84c455e9",
+  "updatedAt": "2026-08-27T09:15:24.702Z",
+  "digest": "sha256:a676a05c1c9e2819147aa2c0ca8fe052088d7b69565a7f511e056d98fb7b0203"
+}

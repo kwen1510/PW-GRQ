@@ -1,194 +1,64 @@
-# Interview Transcription App - Render Deployment
+# PW Group Interview Recorder
 
-A professional interview transcription application with real-time speech-to-text, GPT-4.1 analysis, and local storage history. Ready for deployment on Render.
+A resilient, iPad-friendly group interview recorder for RI teachers. Audio is saved to IndexedDB in one-second chunks before it is sent anywhere, then transcribed by OpenAI and optionally analysed with a cost-conscious GPT-5.x model.
 
-## 🌟 Features
+## What it does
 
-- **Real-time Transcription**: Powered by ElevenLabs Speech-to-Text API
-- **Multi-Speaker Support**: Track up to 5 students with instant speaker switching
-- **GPT-4.1 Analysis**: Post-processing conversation analysis for educational insights
-- **Local Storage History**: Save interviews to device for future reference
-- **History Management**: View, search, and manage saved interviews
-- **Demo Mode**: Test recording functionality without API keys
-- **Modern UI**: Beautiful, responsive design optimized for all devices
+- Records from a selected browser microphone and shows the device label (including a best-effort Bluetooth hint).
+- Rotates recordings into small clips and preserves every completed chunk locally.
+- Retries failed uploads using a stable clip ID; the server caches completed transcriptions for 24 hours.
+- Stores sessions, transcripts and source audio in IndexedDB, supports in-browser clip replay, and downloads all session audio as one ZIP archive.
+- Loads shared analysis prompts from MongoDB, automatically selects the administrator-managed default, labels it `[default]` for teachers, and lets teachers choose any other saved prompt for an individual analysis.
+- Shows immediate startup, local-history and prompt-loading feedback during slower authentication or browser-storage work.
+- Keeps service readiness, local-backup usage, pending-clip counts and session history current as recordings change, when another tab updates the same browser data, and when the page regains focus.
+- Uses OpenAI `gpt-transcribe` for speech-to-text and `gpt-5.6-luna` by default for economical analysis.
+- Requires Firebase email/password sign-in in production and accepts only exact addresses in `ALLOWED_TEACHER_EMAILS`. Student-domain accounts and unlisted RI accounts are rejected server-side.
+- Lets existing Firebase users request a password-reset email from the sign-in screen without revealing whether an address has an account.
 
-## 🚀 Deploy to Render
+## Local development
 
-### Step 1: Prepare Your Repository
+Requirements: Node.js 22, MongoDB credentials, and an OpenAI API key.
 
-1. Create a new GitHub repository
-2. Upload all files from this `render_deploy` folder to your repository
-3. Commit and push the files
-
-### Step 2: Create Render Service
-
-1. Go to [Render Dashboard](https://dashboard.render.com/)
-2. Click "New +" → "Web Service"
-3. Connect your GitHub repository
-4. Configure the service:
-   - **Name**: `interview-transcription-app` (or your preferred name)
-   - **Environment**: `Node`
-   - **Build Command**: `npm install`
-   - **Start Command**: `npm start`
-   - **Instance Type**: `Free` (or upgrade as needed)
-
-### Step 3: Configure Environment Variables
-
-In your Render service dashboard, go to "Environment" and add:
-
-#### Required:
-```
-ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
+```bash
+cp env.example .env
+npm install
+npm test
+npm run dev
 ```
 
-#### Optional (for GPT analysis):
-```
-OPENAI_API_KEY=your_openai_api_key_here
-```
+Open `http://localhost:3000`. Microphone access works on localhost; a deployed site must use HTTPS.
 
-**Note**: Render automatically sets the `PORT` environment variable.
+Useful checks:
 
-### Step 4: Get Your API Keys
-
-#### ElevenLabs API Key (Required for transcription):
-1. Sign up at [elevenlabs.io](https://elevenlabs.io)
-2. Go to your profile settings
-3. Copy your API key
-4. Add it to Render environment variables
-
-#### OpenAI API Key (Optional for GPT analysis):
-1. Sign up at [platform.openai.com](https://platform.openai.com)
-2. Generate an API key in your account settings
-3. Add it to Render environment variables
-
-### Step 5: Deploy
-
-1. Click "Create Web Service"
-2. Render will automatically build and deploy your app
-3. Your app will be available at: `https://your-service-name.onrender.com`
-
-## 🎯 How to Use
-
-### Basic Interview Setup
-1. **Enter Question**: Type your interview question
-2. **Add Students**: Enter names for up to 5 students
-3. **Start Interview**: Click "Start Interview Setup"
-
-### Recording Process  
-1. **Start Recording**: Click the record button
-2. **Select Speaker**: Click on student boxes to indicate who's speaking
-3. **Automatic Transcription**: Speech is transcribed when you switch speakers
-4. **Stop Recording**: Click stop when the interview is complete
-
-### Post-Processing Analysis 🧠
-After stopping the recording, use the **Post-Processing Analysis** section:
-
-1. **Customize Prompt**: Edit the analysis prompt for specific focus
-2. **Run Analysis**: Click "Run GPT-4.1 Analysis" for AI insights
-3. **Review Results**: Get detailed analysis of collaborative thinking patterns
-4. **Copy Results**: Copy the analysis for further use
-
-### Local Storage & History 💾
-- **Save Interviews**: Click "Save Interview" to store locally
-- **View History**: Click "History" to see all saved interviews
-- **Export Options**: Download individual interviews as CSV/JSON
-- **Privacy**: All data stays on the user's device
-
-## 🛠️ Technical Details
-
-### API Endpoints
-- `POST /api/transcribe` - ElevenLabs speech-to-text transcription
-- `POST /api/analyze` - OpenAI GPT-4.1 conversation analysis  
-- `GET /api/health` - Server status and API key validation
-
-### Data Storage
-- **Transcription**: Real-time via API calls
-- **Local History**: Browser localStorage (client-side only)
-- **Analysis Results**: Saved with interview data locally
-- **No Server Storage**: All user data remains on device
-
-### Demo Mode
-The application works without API keys in demo mode:
-- **Transcription**: Shows placeholder responses
-- **Analysis**: Displays sample analysis structure
-- **Recording**: Full microphone functionality for testing
-
-## 🔧 Environment Variables
-
-Copy `env.example` and configure:
-
-```env
-# Required for transcription
-ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
-
-# Optional for GPT analysis  
-OPENAI_API_KEY=your_openai_api_key_here
-
-# Automatically set by Render
-PORT=3000
+```bash
+npm run check
+npm run audit:frontend
+npm run audit:deps
+vercel build
 ```
 
-## 📱 Browser Support
+## Data and recovery model
 
-- Chrome 66+
-- Firefox 60+
-- Safari 12+
-- Edge 79+
+During recording, each one-second `MediaRecorder` chunk is committed to IndexedDB. Clips rotate every 40 seconds, well below Vercel's request-size limit at the configured 96 kbps bitrate. A clip is marked uploadable only after all its chunks are saved. Upload and transcription happen independently, so a slow API does not pause the next recording clip.
 
-**Note**: Microphone access requires HTTPS (automatically provided by Render).
+If the page reloads during recording or upload, the clip is recovered into the retry queue. The original audio remains available for retry and download until the teacher explicitly deletes the local session or clears browser storage. Teachers should still download a session backup before clearing Safari/Chrome data.
 
-## 🚨 Important Notes for Deployment
+## Authentication
 
-### HTTPS Requirement
-- Microphone access requires HTTPS
-- Render provides HTTPS automatically
-- No additional SSL configuration needed
+Authentication fails closed by default. For trusted loopback development only, set `LOCAL_AUTH_BYPASS=true`; this flag is ignored in production and on Vercel. Local bypass users are not prompt administrators unless `LOCAL_PROMPT_ADMIN=true` is also explicitly set.
 
-### API Rate Limits
-- **ElevenLabs**: Check your plan's transcription limits
-- **OpenAI**: Monitor your usage and set appropriate limits
-- Consider upgrading your Render plan for high traffic
+For deployment, create a Firebase web app, enable Email/Password sign-in, add the Vercel domain to Firebase Authorized domains, and populate the Firebase and allowlist variables. Create or retain the approved teacher accounts in Firebase Authentication; the app intentionally has no public sign-up flow. The server verifies the signed ID token, password provider, issuer/audience, exact email domain, and exact email allowlist.
 
-### Performance
-- **Free Tier**: May have cold starts (30-second delay)
-- **Paid Tiers**: Faster response times and always-on service
-- **Memory**: App uses minimal memory, free tier sufficient
+Prompt writes and default-prompt changes are additionally restricted to the exact emails in `PROMPT_ADMIN_EMAILS`. All allowed teachers may read prompts and use recording/analysis.
 
-## 💰 Cost Considerations
+## API
 
-### Render Hosting
-- **Free Tier**: $0/month (with limitations)
-- **Starter**: $7/month (recommended for production)
-- **Standard**: $25/month (for high traffic)
+- `GET /api/config` — safe public browser configuration
+- `GET /api/health` — provider readiness (never exposes credentials)
+- `POST /api/transcribe` — multipart audio plus stable `clipId`
+- `POST /api/analyze` — prompt and transcript
+- `GET /api/prompts` and `GET /api/prompts/:id` — shared prompt library
+- `POST`, `PUT`, `DELETE /api/prompts` — prompt administrators only
+- `PUT /api/prompts/:id/default` — set the shared default; prompt administrators only
 
-### API Costs
-- **ElevenLabs**: Pay per character transcribed
-- **OpenAI**: Pay per token (GPT-4 usage)
-- Monitor usage to control costs
-
-## 🔍 Troubleshooting
-
-### Deployment Issues
-- Check build logs in Render dashboard
-- Verify all dependencies in package.json
-- Ensure Node.js version compatibility (>=18.0.0)
-
-### API Issues
-- Verify API keys in environment variables
-- Check API credit balances
-- Review browser console for error messages
-
-### Microphone Issues
-- Ensure HTTPS is enabled (automatic on Render)
-- Check browser permissions
-- Test with different browsers
-
-## 📞 Support
-
-- Check Render build logs for deployment issues
-- Verify API key configuration in environment variables
-- Test locally first before deploying
-
-## 📄 License
-
-MIT License - feel free to use and modify as needed. 
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for the Vercel checklist.

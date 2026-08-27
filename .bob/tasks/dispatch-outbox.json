@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "bob/task-dispatch-outbox/v1",
+  "projectId": "pw-grq",
+  "sourceRevision": "sha256:f7266155a3235462f269dfe78bbcdb3f4516931d9fe8bc2e972861a4a8c8b2e4",
+  "configurationDigest": "sha256:b137ca00109cf3074f17e5c9211f43af5ffc53e65db678eab0b1f3daebfb818f",
+  "stateDigest": "sha256:a676a05c1c9e2819147aa2c0ca8fe052088d7b69565a7f511e056d98fb7b0203",
+  "intents": [],
+  "updatedAt": "2026-08-27T09:15:24.702Z",
+  "digest": "sha256:897e838037b1e165ee8f11e772fbdb0d5a109fc9efe80a3b00a2b9d78bc7046b"
+}

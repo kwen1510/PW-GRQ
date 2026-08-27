@@ -1,407 +1,332 @@
+'use strict';
+
+require('dotenv').config({ quiet: true });
+
+const crypto = require('node:crypto');
+const path = require('node:path');
 const express = require('express');
-const cors = require('cors');
+const helmet = require('helmet');
 const multer = require('multer');
-const { ElevenLabsClient } = require('@elevenlabs/elevenlabs-js');
-const OpenAI = require('openai');
-require('dotenv').config();
-const { MongoClient, ObjectId } = require('mongodb');
+const { rateLimit } = require('express-rate-limit');
+const { getConfig } = require('./src/server/config');
+const { createAuth } = require('./src/server/auth');
+const { createMongoStore } = require('./src/server/mongo');
+const { createOpenAIService } = require('./src/server/openai');
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+const config = getConfig();
+const mongo = createMongoStore(config);
+const auth = createAuth(config);
+const ai = createOpenAIService(config);
+// Protected mutations use explicit bearer tokens, not ambient cookies.
+const app = express(); // nosemgrep: javascript.express.security.audit.express-check-csurf-middleware-usage.express-check-csurf-middleware-usage
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Add cache-busting headers for development
+app.disable('x-powered-by');
+app.set('trust proxy', 1);
 app.use((req, res, next) => {
-    if (req.url.endsWith('.html') || req.url.endsWith('.js') || req.url.endsWith('.css') || req.url === '/') {
-        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-        res.setHeader('Pragma', 'no-cache');
-        res.setHeader('Expires', '0');
+  req.requestId = req.get('x-request-id') || crypto.randomUUID();
+  res.set('x-request-id', req.requestId);
+  next();
+});
+app.use(helmet({
+  crossOriginEmbedderPolicy: false,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'"],
+      imgSrc: ["'self'", 'data:'],
+      connectSrc: ["'self'", 'https://*.googleapis.com', 'https://securetoken.googleapis.com'],
+      frameSrc: ["'none'"],
+      objectSrc: ["'none'"],
+      baseUri: ["'none'"],
+      frameAncestors: ["'none'"]
     }
+  }
+}));
+app.use(express.json({ limit: '256kb', strict: true }));
+app.use(express.static(path.join(__dirname, 'public'), {
+  etag: true,
+  maxAge: config.nodeEnv === 'production' ? '1h' : 0,
+  setHeaders(res, filePath) {
+    if (filePath.endsWith('.html')) res.set('Cache-Control', 'no-store');
+  }
+}));
+
+const publicLimit = rateLimit({ windowMs: 15 * 60 * 1000, limit: 120, standardHeaders: 'draft-8', legacyHeaders: false });
+const commonLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 300,
+  keyGenerator: (req) => req.user.uid,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false
+});
+const transcriptionLimit = rateLimit({ windowMs: 10 * 60 * 1000, limit: 80, keyGenerator: (req) => req.user.uid, standardHeaders: 'draft-8', legacyHeaders: false });
+const analysisLimit = rateLimit({ windowMs: 10 * 60 * 1000, limit: 30, keyGenerator: (req) => req.user.uid, standardHeaders: 'draft-8', legacyHeaders: false });
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 3 * 1024 * 1024, files: 1, fields: 4 },
+  fileFilter: (_req, file, callback) => callback(null, /^audio\//i.test(file.mimetype))
+});
+
+function cleanText(value, max) {
+  return typeof value === 'string' ? value.trim().slice(0, max) : '';
+}
+
+async function acquireTranscriptionJob(jobs, { jobKey, leaseId, contentHash }) {
+  const now = new Date();
+  try {
+    await jobs.insertOne({
+      key: jobKey,
+      leaseId,
+      contentHash,
+      status: 'processing',
+      createdAt: now,
+      updatedAt: now,
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
+    });
+    return {};
+  } catch (error) {
+    if (error.code !== 11000) throw error;
+  }
+
+  const existing = await jobs.findOne({ key: jobKey });
+  if (existing?.contentHash && existing.contentHash !== contentHash) {
+    throw Object.assign(new Error('This clip ID belongs to different audio'), { status: 409, retryable: false });
+  }
+  if (existing?.status === 'complete') return { cachedText: existing.text };
+
+  const staleBefore = new Date(Date.now() - 10 * 60 * 1000);
+  const takeover = await jobs.updateOne(
+    { key: jobKey, status: { $ne: 'complete' }, $or: [{ status: { $ne: 'processing' } }, { updatedAt: { $lte: staleBefore } }] },
+    { $set: { status: 'processing', leaseId, contentHash, updatedAt: now, expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) } }
+  );
+  if (!takeover.modifiedCount) {
+    throw Object.assign(new Error('This clip is already being transcribed'), { status: 409, retryable: true, retryAfter: 3 });
+  }
+  return {};
+}
+
+function publicFirebaseConfig() {
+  const f = config.firebase;
+  if (!(f.apiKey && f.authDomain && f.projectId && f.appId)) return null;
+  return { apiKey: f.apiKey, authDomain: f.authDomain, projectId: f.projectId, appId: f.appId };
+}
+
+app.get('/api/config', publicLimit, (_req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.json({
+    authRequired: config.authRequired,
+    firebase: publicFirebaseConfig(),
+    teacherDomain: config.allowedTeacherDomain,
+    transcriptionModel: config.transcriptionModel,
+    analysisModel: config.analysisModel
+  });
+});
+
+app.get('/api/health', publicLimit, async (_req, res) => {
+  let mongoReady = false;
+  try {
+    const database = await mongo.db();
+    if (database) {
+      await database.command({ ping: 1 });
+      mongoReady = true;
+    }
+  } catch {
+    mongoReady = false;
+  }
+  const authReady = !config.authRequired || auth.firebaseReady;
+  const ready = ai.configured && mongoReady && authReady;
+  res.status(ready ? 200 : 503).json({
+    status: ready ? 'ready' : 'degraded',
+    openaiReady: ai.configured,
+    mongoReady,
+    authReady,
+    authRequired: config.authRequired
+  });
+});
+
+app.use('/api', async (req, _res, next) => {
+  if (config.localAuthBypass) return next();
+  try {
+    await mongo.consumeWindowQuota(`ip:${req.ip}`, 'authentication', 120, 15 * 60 * 1000);
     next();
+  } catch (error) { next(error); }
 });
+app.use('/api', auth.requireTeacher);
+app.use('/api', commonLimit);
 
-app.use(express.static('public'));
+app.get('/api/me', (req, res) => res.json({ user: req.user }));
 
-// MongoDB setup
-const MONGO_DB_USERNAME = process.env.MONGO_DB_USERNAME || 'kwen1510';
-const MONGO_DB_PASSWORD = process.env.MONGO_DB_PASSWORD;
-const MONGO_URI = process.env.MONGO_URI || `mongodb+srv://${MONGO_DB_USERNAME}:${MONGO_DB_PASSWORD}@cluster0.bwtbeur.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
-const MONGO_DB_NAME = process.env.MONGO_DB_NAME || 'pw_grq';
+app.post('/api/transcribe', transcriptionLimit, upload.single('audio'), async (req, res, next) => {
+  const clipId = cleanText(req.body?.clipId, 100);
+  if (!req.file || !clipId) return res.status(400).json({ error: 'An audio clip and clipId are required' });
+  if (req.file.size < 512) return res.status(422).json({ error: 'The audio clip is too short to transcribe' });
 
-let mongoClient = null;
-let db = null;
-let promptsCollection = null;
-let questionsCollection = null;
-
-(async () => {
+  let jobs = null;
+  const jobKey = `${req.user.uid}:${clipId}`;
+  const hints = cleanText(req.body?.hints, 1000);
+  const mediaIdentity = `${String(req.file.mimetype || '').toLowerCase()}|${path.extname(req.file.originalname || '').toLowerCase()}`;
+  const contentHash = crypto.createHash('sha256').update(req.file.buffer).update('\0').update(mediaIdentity).update('\0').update(hints).update('\0').update(config.transcriptionModel).digest('hex');
+  const leaseId = crypto.randomUUID();
   try {
-    if (!MONGO_DB_PASSWORD) {
-      console.log('ℹ️  MONGO_DB_PASSWORD not set - MongoDB features disabled');
-      return;
-    }
-    mongoClient = new MongoClient(MONGO_URI, { serverSelectionTimeoutMS: 5000 });
-    await mongoClient.connect();
-    db = mongoClient.db(MONGO_DB_NAME);
-    promptsCollection = db.collection('prompts');
-    questionsCollection = db.collection('questions');
-    console.log(`✅ Connected to MongoDB (db: ${MONGO_DB_NAME})`);
-  } catch (err) {
-    console.log('⚠️  MongoDB connection failed:', err.message);
-  }
-})();
-
-// Configure multer for handling audio files
-const storage = multer.memoryStorage();
-const upload = multer({ 
-  storage: storage,
-  limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB limit
-  }
-});
-
-// ElevenLabs API configuration
-const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
-const HAS_API_KEY = ELEVENLABS_API_KEY && ELEVENLABS_API_KEY !== 'your_elevenlabs_api_key_here';
-
-// Initialize ElevenLabs client
-let elevenlabs = null;
-if (HAS_API_KEY) {
-  elevenlabs = new ElevenLabsClient({
-    apiKey: ELEVENLABS_API_KEY
-  });
-  console.log('✅ ElevenLabs API key found - Real transcription enabled');
-} else {
-  console.log('⚠️  No ElevenLabs API key found - Add your API key to .env for transcription');
-  console.log('💡 You can still test recording, but transcription will not work');
-}
-
-// OpenAI API configuration
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const HAS_OPENAI_KEY = OPENAI_API_KEY && OPENAI_API_KEY !== 'your_openai_api_key_here';
-
-// Initialize OpenAI client
-let openai = null;
-if (HAS_OPENAI_KEY) {
-  openai = new OpenAI({
-    apiKey: OPENAI_API_KEY
-  });
-  console.log('✅ OpenAI API key found - GPT analysis enabled');
-} else {
-  console.log('⚠️  No OpenAI API key found - Add your API key to .env for GPT analysis');
-  console.log('💡 You can still test recording, but GPT analysis will not work');
-}
-
-// Demo transcription responses (fallback only)
-const demoResponses = [
-  "Please add your ElevenLabs API key to enable transcription.",
-  "Recording is working, but transcription requires an API key.",
-  "Add ELEVENLABS_API_KEY to your .env file.",
-  "Visit elevenlabs.io to get your API key.",
-  "Once you add the API key, restart the server."
-];
-let demoIndex = 0;
-
-// Transcription endpoint
-app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No audio file provided' });
+    const database = await mongo.db();
+    if (!database) return res.status(503).json({ error: 'Transcription recovery storage is unavailable', retryable: true });
+    jobs = database.collection('transcription_jobs');
+    await jobs.createIndex({ key: 1 }, { unique: true });
+    await jobs.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+    const acquisition = await acquireTranscriptionJob(jobs, { jobKey, leaseId, contentHash });
+    if (Object.hasOwn(acquisition, 'cachedText')) {
+      return res.json({ success: true, text: acquisition.cachedText, cached: true, clipId });
     }
 
-    console.log(`🎤 Received audio: ${req.file.buffer.length} bytes, type: ${req.file.mimetype}`);
+    await mongo.consumeDailyQuota(req.user.uid, 'transcription', 200);
+    await mongo.consumeDailyQuota('global', 'transcription', 1000);
+    await mongo.consumeWindowQuota(req.user.uid, 'transcription', 20, 10 * 60 * 1000);
 
-    // If we have an API key, use real transcription
-    if (HAS_API_KEY && elevenlabs) {
-      try {
-        console.log(`🌐 Calling ElevenLabs API for transcription...`);
-        
-        // Create audio blob exactly like the official example
-        const audioBlob = new Blob([req.file.buffer], { 
-          type: req.file.mimetype || 'audio/webm' 
-        });
-        
-        // Use the official ElevenLabs client method
-        const transcription = await elevenlabs.speechToText.convert({
-          file: audioBlob,
-          modelId: "scribe_v1", // Model to use
-          tagAudioEvents: false, // We don't need audio event tagging for now
-          languageCode: "eng", // English language for better accuracy
-          diarize: false // We don't need speaker diarization for this simple test
-        });
-        
-        console.log("✅ ElevenLabs transcription successful:", transcription.text);
-        
-        res.json({ 
-          success: true, 
-          text: transcription.text || "No speech detected",
-          demo: false
-        });
-
-      } catch (apiError) {
-        console.error('❌ Transcription error:', apiError);
-        res.status(500).json({ 
-          error: 'Transcription failed',
-          details: apiError.message
-        });
-      }
-    } else {
-      // No API key - return demo message
-      const demoText = demoResponses[demoIndex % demoResponses.length];
-      demoIndex++;
-      
-      res.json({ 
-        success: true, 
-        text: demoText,
-        demo: true,
-        needsApiKey: true
-      });
-    }
-
+    const heartbeat = setInterval(() => {
+      jobs.updateOne({ key: jobKey, leaseId, status: 'processing' }, { $set: { updatedAt: new Date() } }).catch(() => {});
+    }, 30_000);
+    heartbeat.unref?.();
+    const text = await ai.transcribe({
+      buffer: req.file.buffer,
+      mimetype: req.file.mimetype,
+      filename: req.file.originalname,
+      hints
+    }).finally(() => clearInterval(heartbeat));
+    if (jobs) await jobs.updateOne({ key: jobKey, leaseId }, { $set: { status: 'complete', text, updatedAt: new Date() } });
+    return res.json({ success: true, text, cached: false, clipId });
   } catch (error) {
-    console.error('❌ Server error:', error);
-    res.status(500).json({ 
-      error: 'Server error',
-      details: error.message
-    });
+    if (jobs) await jobs.updateOne({ key: jobKey, leaseId }, { $set: { status: 'failed', updatedAt: new Date() } }).catch(() => {});
+    return next(error);
   }
 });
 
-// GPT Analysis endpoint (accepts either `transcript` or legacy `conversation`)
-app.post('/api/analyze', async (req, res) => {
+app.post('/api/analyze', analysisLimit, async (req, res, next) => {
+  const prompt = cleanText(req.body?.prompt, 20_000);
+  const transcript = cleanText(req.body?.transcript || req.body?.conversation, 120_000);
+  if (!prompt || !transcript) return res.status(400).json({ error: 'Prompt and transcript are required' });
   try {
-    const { prompt, conversation, transcript, question, studentNames, timestamp, questionIndex, sessionId } = req.body;
-
-    const conversationText = (typeof transcript === 'string' && transcript.trim().length)
-      ? transcript
-      : (typeof conversation === 'string' ? conversation : '');
-
-    if (!prompt || !conversationText) {
-      return res.status(400).json({ error: 'Prompt and transcript are required' });
-    }
-
-    console.log(`🧠 Received analysis request for conversation with ${studentNames?.length || 0} students`);
-
-    // If we have an OpenAI API key, use real analysis
-    if (HAS_OPENAI_KEY && openai) {
-      try {
-        console.log(`🌐 Calling OpenAI GPT-4 for analysis...`);
-        
-        // Prepare the full context for GPT
-        const fullPrompt = `${prompt}
-
-**Important Context:**
-- This transcript comes from speech-to-text, so speaker names may be imperfectly transcribed
-- Student names: ${studentNames?.join(', ') || 'Not provided'}
-- Question discussed: ${question}
-- If a speaker name in quotes doesn't match the provided names, correct ONLY the name part while keeping the rest of the quote unchanged
-  Example: If the transcript shows "[incorrect name]: great point" and the student is actually "John", write "John: great point"
-
-**Conversation Transcript:**
-${conversationText}
-
-Please provide a comprehensive analysis based on the prompt above.`;
-
-        const completion = await openai.chat.completions.create({
-          model: "gpt-4.1", // Using GPT-4 for high-quality analysis
-          messages: [
-            {
-              role: "system",
-              content: "You are good at following instructions and output the correct format. Follow the instructions and output the correct format."
-            },
-            {
-              role: "user", 
-              content: fullPrompt
-            }
-          ],
-          max_tokens: 2000,
-          temperature: 0.3
-        });
-
-        const analysis = completion.choices[0].message.content;
-        console.log('✅ GPT-4 analysis completed successfully');
-        
-        // Note: Do not persist analysis; client stores results in localStorage
-
-        res.json({
-          success: true,
-          analysis: analysis,
-          model: "gpt-4.1",
-          timestamp: new Date().toISOString()
-        });
-
-      } catch (apiError) {
-        console.error('❌ OpenAI analysis error:', apiError);
-        res.status(500).json({ 
-          error: 'GPT analysis failed',
-          details: apiError.message
-        });
-      }
-    } else {
-      // No API key - return demo message
-      const demoAnalysis = `**Demo Analysis (Add OpenAI API Key for Real Analysis)**
-
-This is a demonstration response. To get real GPT-4 analysis:
-1. Add your OpenAI API key to the .env file as OPENAI_API_KEY
-2. Restart the server
-3. Run the analysis again
-
-**Sample Analysis Structure:**
-
-**Collaborative Thinking Patterns:**
-- Students demonstrated active listening and building upon each other's ideas
-- Evidence of respectful disagreement and constructive dialogue
-
-**Idea Development:**
-- Initial concepts were introduced and refined through group discussion
-- Complex topics were broken down collaboratively
-
-**Participation Patterns:**
-- Balanced participation among group members
-- Some students took leadership roles while others provided supportive input
-
-**Critical Thinking Indicators:**
-- Students asked clarifying questions
-- Evidence of analysis and synthesis of different perspectives
-
-Add your OpenAI API key to get detailed, personalized analysis of your specific conversation.`;
-      
-      res.json({ 
-        success: true, 
-        analysis: demoAnalysis,
-        demo: true,
-        needsApiKey: true
-      });
-    }
-
+    await mongo.consumeDailyQuota(req.user.uid, 'analysis', 50);
+    await mongo.consumeDailyQuota('global', 'analysis', 250);
+    await mongo.consumeWindowQuota(req.user.uid, 'analysis', 10, 10 * 60 * 1000);
+    const analysis = await ai.analyze({
+      prompt,
+      transcript,
+      question: cleanText(req.body?.question, 2000),
+      studentNames: Array.isArray(req.body?.studentNames) ? req.body.studentNames.map((name) => cleanText(name, 100)) : []
+    });
+    return res.json({ success: true, analysis, model: config.analysisModel, timestamp: new Date().toISOString() });
   } catch (error) {
-    console.error('❌ Server error in analysis:', error);
-    res.status(500).json({ 
-      error: 'Server error during analysis',
-      details: error.message
-    });
+    return next(error);
   }
 });
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    timestamp: new Date().toISOString(),
-    hasApiKey: HAS_API_KEY,
-    demoMode: !HAS_API_KEY,
-    hasOpenAIKey: HAS_OPENAI_KEY,
-    gptAnalysisEnabled: HAS_OPENAI_KEY,
-    mongoConnected: !!db
-  });
-});
-
-// Prompt endpoints (support multiple prompts)
-// List prompts
-app.get('/api/prompts', async (req, res) => {
+app.get('/api/prompts', async (_req, res, next) => {
   try {
-    if (!promptsCollection) return res.json({ prompts: [] });
-    const raw = await promptsCollection
-      .find({}, { projection: { text: 0 } })
-      .sort({ updatedAt: -1 })
-      .toArray();
-    const prompts = raw.map(p => ({
-      _id: (p._id && p._id.toString) ? p._id.toString() : p._id,
-      name: p.name,
-      updatedAt: p.updatedAt,
-      createdAt: p.createdAt
-    }));
-    res.json({ prompts });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to list prompts', details: err.message });
+    const collection = await mongo.prompts();
+    if (!collection) return res.json({ prompts: [] });
+    const database = await mongo.db();
+    const [prompts, setting] = await Promise.all([
+      collection.find({}, { projection: { text: 0 } }).sort({ updatedAt: -1 }).limit(100).toArray(),
+      database.collection('app_settings').findOne({ key: 'default-prompt' })
+    ]);
+    const serialized = prompts.map((prompt) => ({ ...prompt, _id: String(prompt._id) }));
+    const defaultPromptId = serialized.some((prompt) => prompt._id === String(setting?.promptId)) ? String(setting.promptId) : null;
+    return res.json({ prompts: serialized, defaultPromptId });
+  } catch (error) {
+    return next(error);
   }
 });
 
-// Get single prompt
-app.get('/api/prompts/:id', async (req, res) => {
+app.get('/api/prompts/:id', async (req, res, next) => {
   try {
-    if (!promptsCollection) return res.status(503).json({ error: 'MongoDB not connected' });
-    const id = req.params.id;
-    const _id = ObjectId.isValid(id) ? new ObjectId(id) : id;
-    const doc = await promptsCollection.findOne({ _id });
-    if (!doc) return res.status(404).json({ error: 'Prompt not found' });
-    const normalized = {
-      _id: (doc._id && doc._id.toString) ? doc._id.toString() : doc._id,
-      name: doc.name,
-      text: doc.text,
-      updatedAt: doc.updatedAt,
-      createdAt: doc.createdAt
-    };
-    res.json(normalized);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to load prompt', details: err.message });
+    const collection = await mongo.prompts();
+    if (!collection) return res.status(503).json({ error: 'Prompt storage is unavailable' });
+    const prompt = await collection.findOne({ _id: mongo.id(req.params.id) });
+    if (!prompt) return res.status(404).json({ error: 'Prompt not found' });
+    return res.json({ ...prompt, _id: String(prompt._id) });
+  } catch (error) {
+    return next(error);
   }
 });
 
-// Create new prompt
-app.post('/api/prompts', async (req, res) => {
+app.post('/api/prompts', auth.requirePromptAdmin, async (req, res, next) => {
+  const name = cleanText(req.body?.name, 120);
+  const text = cleanText(req.body?.text, 20_000);
+  if (!name || !text) return res.status(400).json({ error: 'Prompt name and text are required' });
   try {
-    const { name, text } = req.body || {};
-    if (!name || !text) return res.status(400).json({ error: 'name and text required' });
-    if (!promptsCollection) return res.status(503).json({ error: 'MongoDB not connected' });
+    const collection = await mongo.prompts();
+    if (!collection) return res.status(503).json({ error: 'Prompt storage is unavailable' });
     const now = new Date().toISOString();
-    const doc = { name, text, updatedAt: now, createdAt: now };
-    const result = await promptsCollection.insertOne(doc);
-    res.json({ success: true, id: result.insertedId.toString(), ...doc });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to create prompt', details: err.message });
+    const result = await collection.insertOne({ name, text, createdAt: now, updatedAt: now, updatedBy: req.user.email });
+    return res.status(201).json({ success: true, id: String(result.insertedId), name, text, createdAt: now, updatedAt: now });
+  } catch (error) {
+    return next(error);
   }
 });
 
-// Update prompt
-app.put('/api/prompts/:id', async (req, res) => {
+app.put('/api/prompts/:id', auth.requirePromptAdmin, async (req, res, next) => {
+  const name = cleanText(req.body?.name, 120);
+  const text = cleanText(req.body?.text, 20_000);
+  if (!name || !text) return res.status(400).json({ error: 'Prompt name and text are required' });
   try {
-    const { name, text } = req.body || {};
-    if (!name && !text) return res.status(400).json({ error: 'name or text required' });
-    if (!promptsCollection) return res.status(503).json({ error: 'MongoDB not connected' });
-    const id = req.params.id;
-    const _id = ObjectId.isValid(id) ? new ObjectId(id) : id;
-    const now = new Date().toISOString();
-    const update = { $set: { updatedAt: now } };
-    if (name) update.$set.name = name;
-    if (text) update.$set.text = text;
-    const result = await promptsCollection.updateOne({ _id }, update);
+    const collection = await mongo.prompts();
+    if (!collection) return res.status(503).json({ error: 'Prompt storage is unavailable' });
+    const updatedAt = new Date().toISOString();
+    const result = await collection.updateOne({ _id: mongo.id(req.params.id) }, { $set: { name, text, updatedAt, updatedBy: req.user.email } });
     if (!result.matchedCount) return res.status(404).json({ error: 'Prompt not found' });
-    res.json({ success: true, updatedAt: now });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to update prompt', details: err.message });
+    return res.json({ success: true, updatedAt });
+  } catch (error) {
+    return next(error);
   }
 });
 
-// Delete prompt
-app.delete('/api/prompts/:id', async (req, res) => {
+app.put('/api/prompts/:id/default', auth.requirePromptAdmin, async (req, res, next) => {
   try {
-    if (!promptsCollection) return res.status(503).json({ error: 'MongoDB not connected' });
-    const id = req.params.id;
-    const _id = ObjectId.isValid(id) ? new ObjectId(id) : id;
-    const result = await promptsCollection.deleteOne({ _id });
+    const database = await mongo.db();
+    if (!database) return res.status(503).json({ error: 'Prompt storage is unavailable' });
+    const prompt = await database.collection('prompts').findOne({ _id: mongo.id(req.params.id) }, { projection: { _id: 1, name: 1 } });
+    if (!prompt) return res.status(404).json({ error: 'Prompt not found' });
+    const updatedAt = new Date().toISOString();
+    await database.collection('app_settings').updateOne(
+      { key: 'default-prompt' },
+      { $set: { promptId: prompt._id, promptName: prompt.name, updatedAt, updatedBy: req.user.email } },
+      { upsert: true }
+    );
+    return res.json({ success: true, defaultPromptId: String(prompt._id), updatedAt });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+app.delete('/api/prompts/:id', auth.requirePromptAdmin, async (req, res, next) => {
+  try {
+    const database = await mongo.db();
+    const collection = database?.collection('prompts');
+    if (!collection) return res.status(503).json({ error: 'Prompt storage is unavailable' });
+    const result = await collection.deleteOne({ _id: mongo.id(req.params.id) });
     if (!result.deletedCount) return res.status(404).json({ error: 'Prompt not found' });
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to delete prompt', details: err.message });
+    await database.collection('app_settings').deleteOne({ key: 'default-prompt', promptId: mongo.id(req.params.id) });
+    return res.json({ success: true });
+  } catch (error) {
+    return next(error);
   }
 });
 
-// Save per-question transcript endpoint
-// Deprecated: local-only persistence; keep endpoint for compatibility but no-op
-app.post('/api/save-question', async (req, res) => {
-  res.json({ success: true, message: 'LocalStorage only. No server persistence.' });
+app.use('/api', (_req, res) => res.status(404).json({ error: 'API route not found' }));
+app.use((error, _req, res, _next) => {
+  const status = Number(error.status || error.statusCode || (error.code === 'LIMIT_FILE_SIZE' ? 413 : 500));
+  if (status >= 500) console.error('Request failed:', error.message);
+  if (error.retryAfter) res.set('Retry-After', String(error.retryAfter));
+  res.status(status).json({
+    error: status >= 500 ? 'The request could not be completed' : error.message,
+    retryable: error.retryable ?? (status === 409 || status === 429 || status >= 500)
+  });
 });
 
-// Analysis endpoint - integrates with AI service for transcript analysis
-// (Remove duplicate legacy analyze endpoint)
+if (require.main === module) {
+  app.listen(config.port, '127.0.0.1', () => console.log(`PW GRQ running at http://127.0.0.1:${config.port}`));
+}
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
-  if (!HAS_API_KEY) {
-    console.log('📝 Add your ElevenLabs API key to .env to enable real transcription');
-  }
-  console.log(`📁 Serving files from public directory`);
-}); 
+module.exports = app;

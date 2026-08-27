@@ -1,0 +1,482 @@
+{
+  "schemaVersion": "bob/project-evidence/v1",
+  "projectId": "pw-grq",
+  "binding": {
+    "environment": "local",
+    "sourceRevision": "be52fd7b0b0d44d921cce9cb8062dec23f992a94",
+    "sourceTree": "32d40f4f7503443251df2c79ae55f8707cf4d053",
+    "sourceClean": false,
+    "sourceExact": false,
+    "sourceDigest": "sha256:eba33238431a699fdf143fd716ba930d410170135fa4153068ad0cb1a9662af3",
+    "configurationInputs": [
+      {
+        "path": ".bob/project.json",
+        "digest": "sha256:99b3600dab299b9bcfbed93a4bbfc15581ce9c084f8202848ff3687f2e8fea46"
+      },
+      {
+        "path": ".bob/workflow/definition.json",
+        "digest": "sha256:afe5c4d7ddfe9d6b3327398575bbbfd3241e63772ad38e6c738678769c328ad0"
+      },
+      {
+        "path": ".bob/block-lock.json",
+        "digest": "sha256:1160d7d68928629739393a2f785370557634596cc92b3d0c831fc1908f4b28de"
+      },
+      {
+        "path": ".bob/intake/request.md",
+        "digest": "sha256:b23936ed9000e9b0eacf41c78bd5ff5a9032dc23a93e40246c33461735b49250"
+      },
+      {
+        "path": ".bob/providers/inventory.json",
+        "digest": "sha256:1577cfc79fa40df852e54ccccc2dc631dbbf953f50dc93b94a267ef5d66ec88a"
+      },
+      {
+        "path": ".bob/audit/manifest.json",
+        "digest": "sha256:15876999b7d4df84bb23c96eb6d7a224001c388207c6333d9d159fa2d191ad5f"
+      },
+      {
+        "path": "package.json",
+        "digest": "sha256:5f3001f6aa297e5abc6f2acafc3f46cc4042fa96c754bab09acf26efa0b90fec"
+      },
+      {
+        "path": "package-lock.json",
+        "digest": "sha256:59dd5c229f0c08b1bd302d74a3f93638590f037df54b08ef54ec24766f5c4bdc"
+      }
+    ],
+    "configurationDigest": "sha256:a67a4229560c55f75e415c9226f403633629400327b4d8963e605e3284a2c365",
+    "createdAt": "2026-08-26T04:18:39.431Z"
+  },
+  "productMap": {
+    "status": "blocked",
+    "reason": "Feature, route, API, authentication and data-store inventory is incomplete.",
+    "evidence": [],
+    "apiApplicability": "unassessed",
+    "apiReason": null,
+    "features": [],
+    "routes": [],
+    "apis": [],
+    "authentication": [],
+    "dataStores": []
+  },
+  "permissions": {
+    "status": "blocked",
+    "reason": "Role and resource authority is not mapped.",
+    "evidence": [],
+    "roles": [],
+    "rules": []
+  },
+  "dataFlowModel": {
+    "status": "blocked",
+    "reason": "Data flows and trust boundaries are not mapped.",
+    "evidence": [],
+    "flows": [],
+    "trustBoundaries": []
+  },
+  "architectureModel": {
+    "status": "blocked",
+    "reason": "Deployables, providers and threats are not mapped.",
+    "evidence": [],
+    "providerApplicability": "unassessed",
+    "providerReason": null,
+    "deployables": [],
+    "providers": [],
+    "threats": []
+  },
+  "assurance": {
+    "deterministic": {
+      "status": "blocked",
+      "reason": "Applicable deterministic checks do not yet have passing evidence.",
+      "evidence": [],
+      "results": [
+        {
+          "id": "build",
+          "label": "Build",
+          "applicable": true,
+          "status": "blocked",
+          "tool": null,
+          "command": null,
+          "stageReceipt": null,
+          "reason": "Applicable tool and current revision-bound evidence are not recorded.",
+          "evidence": []
+        },
+        {
+          "id": "typecheck",
+          "label": "Type checking",
+          "applicable": true,
+          "status": "blocked",
+          "tool": null,
+          "command": null,
+          "stageReceipt": null,
+          "reason": "Applicable tool and current revision-bound evidence are not recorded.",
+          "evidence": []
+        },
+        {
+          "id": "unit",
+          "label": "Unit tests",
+          "applicable": true,
+          "status": "blocked",
+          "tool": null,
+          "command": null,
+          "stageReceipt": null,
+          "reason": "Applicable tool and current revision-bound evidence are not recorded.",
+          "evidence": []
+        },
+        {
+          "id": "integration",
+          "label": "Integration tests",
+          "applicable": true,
+          "status": "blocked",
+          "tool": null,
+          "command": null,
+          "stageReceipt": null,
+          "reason": "Applicable tool and current revision-bound evidence are not recorded.",
+          "evidence": []
+        },
+        {
+          "id": "e2e",
+          "label": "End-to-end browser tests",
+          "applicable": true,
+          "status": "blocked",
+          "tool": null,
+          "command": null,
+          "stageReceipt": null,
+          "reason": "Applicable tool and current revision-bound evidence are not recorded.",
+          "evidence": []
+        },
+        {
+          "id": "authorization",
+          "label": "Authorization and cross-user denial",
+          "applicable": true,
+          "status": "blocked",
+          "tool": null,
+          "command": null,
+          "stageReceipt": null,
+          "reason": "Applicable tool and current revision-bound evidence are not recorded.",
+          "evidence": []
+        },
+        {
+          "id": "secrets",
+          "label": "Secret scanning",
+          "applicable": true,
+          "status": "blocked",
+          "tool": null,
+          "command": null,
+          "stageReceipt": null,
+          "reason": "Applicable tool and current revision-bound evidence are not recorded.",
+          "evidence": []
+        },
+        {
+          "id": "static-analysis",
+          "label": "Static security analysis",
+          "applicable": true,
+          "status": "blocked",
+          "tool": null,
+          "command": null,
+          "stageReceipt": null,
+          "reason": "Applicable tool and current revision-bound evidence are not recorded.",
+          "evidence": []
+        },
+        {
+          "id": "dependencies",
+          "label": "Dependency analysis",
+          "applicable": true,
+          "status": "blocked",
+          "tool": null,
+          "command": null,
+          "stageReceipt": null,
+          "reason": "Applicable tool and current revision-bound evidence are not recorded.",
+          "evidence": []
+        },
+        {
+          "id": "sbom",
+          "label": "SBOM generation and validation",
+          "applicable": true,
+          "status": "blocked",
+          "tool": null,
+          "command": null,
+          "stageReceipt": null,
+          "reason": "Applicable tool and current revision-bound evidence are not recorded.",
+          "evidence": []
+        }
+      ]
+    },
+    "agentic": {
+      "status": "not-assessed",
+      "observations": []
+    }
+  },
+  "uat": {
+    "status": "blocked",
+    "reason": "Human UAT journeys and feedback are not recorded.",
+    "evidence": [],
+    "journeys": [],
+    "feedback": []
+  },
+  "moeAied": {
+    "status": "blocked",
+    "reason": "MOE AIEd applicability and technical checks are not assessed.",
+    "evidence": [],
+    "applicability": "unassessed",
+    "technicalChecks": [
+      {
+        "id": "agency",
+        "label": "Learner and educator agency",
+        "status": "blocked",
+        "reason": "Technical assessment evidence is not recorded.",
+        "evidence": []
+      },
+      {
+        "id": "inclusivity",
+        "label": "Inclusive access and disadvantage review",
+        "status": "blocked",
+        "reason": "Technical assessment evidence is not recorded.",
+        "evidence": []
+      },
+      {
+        "id": "fairness",
+        "label": "Accuracy, bias and fairness",
+        "status": "blocked",
+        "reason": "Technical assessment evidence is not recorded.",
+        "evidence": []
+      },
+      {
+        "id": "safety",
+        "label": "Safety and intended-context fit",
+        "status": "blocked",
+        "reason": "Technical assessment evidence is not recorded.",
+        "evidence": []
+      },
+      {
+        "id": "ai-signposting",
+        "label": "AI use is clearly signposted",
+        "status": "blocked",
+        "reason": "Technical assessment evidence is not recorded.",
+        "evidence": []
+      },
+      {
+        "id": "teacher-in-loop",
+        "label": "Teacher-in-the-loop control",
+        "status": "blocked",
+        "reason": "Technical assessment evidence is not recorded.",
+        "evidence": []
+      },
+      {
+        "id": "teacher-over-loop",
+        "label": "Teacher-over-the-loop supervision",
+        "status": "blocked",
+        "reason": "Technical assessment evidence is not recorded.",
+        "evidence": []
+      },
+      {
+        "id": "obvious-child-safety",
+        "label": "Obvious child-safety prompts",
+        "status": "blocked",
+        "reason": "Technical assessment evidence is not recorded.",
+        "evidence": []
+      },
+      {
+        "id": "subtle-child-safety",
+        "label": "Subtle child-safety prompts",
+        "status": "blocked",
+        "reason": "Technical assessment evidence is not recorded.",
+        "evidence": []
+      },
+      {
+        "id": "provider-terms",
+        "label": "Provider terms",
+        "status": "blocked",
+        "reason": "Technical assessment evidence is not recorded.",
+        "evidence": []
+      },
+      {
+        "id": "provider-age",
+        "label": "Provider age advisories",
+        "status": "blocked",
+        "reason": "Technical assessment evidence is not recorded.",
+        "evidence": []
+      },
+      {
+        "id": "provider-training",
+        "label": "Provider data-training policy",
+        "status": "blocked",
+        "reason": "Technical assessment evidence is not recorded.",
+        "evidence": []
+      },
+      {
+        "id": "data-classification",
+        "label": "Permitted data classification",
+        "status": "blocked",
+        "reason": "Technical assessment evidence is not recorded.",
+        "evidence": []
+      }
+    ],
+    "childSafety": {
+      "categories": [
+        "danger",
+        "sexual-content",
+        "profanity",
+        "hateful-content",
+        "self-harm",
+        "substance-use",
+        "off-task"
+      ],
+      "promptStyles": [
+        "obvious",
+        "subtle"
+      ],
+      "results": [
+        {
+          "id": "obvious-danger",
+          "category": "danger",
+          "promptStyle": "obvious",
+          "status": "blocked",
+          "reason": "Synthetic prompt and response evaluation is not recorded.",
+          "evidence": []
+        },
+        {
+          "id": "subtle-danger",
+          "category": "danger",
+          "promptStyle": "subtle",
+          "status": "blocked",
+          "reason": "Synthetic prompt and response evaluation is not recorded.",
+          "evidence": []
+        },
+        {
+          "id": "obvious-sexual-content",
+          "category": "sexual-content",
+          "promptStyle": "obvious",
+          "status": "blocked",
+          "reason": "Synthetic prompt and response evaluation is not recorded.",
+          "evidence": []
+        },
+        {
+          "id": "subtle-sexual-content",
+          "category": "sexual-content",
+          "promptStyle": "subtle",
+          "status": "blocked",
+          "reason": "Synthetic prompt and response evaluation is not recorded.",
+          "evidence": []
+        },
+        {
+          "id": "obvious-profanity",
+          "category": "profanity",
+          "promptStyle": "obvious",
+          "status": "blocked",
+          "reason": "Synthetic prompt and response evaluation is not recorded.",
+          "evidence": []
+        },
+        {
+          "id": "subtle-profanity",
+          "category": "profanity",
+          "promptStyle": "subtle",
+          "status": "blocked",
+          "reason": "Synthetic prompt and response evaluation is not recorded.",
+          "evidence": []
+        },
+        {
+          "id": "obvious-hateful-content",
+          "category": "hateful-content",
+          "promptStyle": "obvious",
+          "status": "blocked",
+          "reason": "Synthetic prompt and response evaluation is not recorded.",
+          "evidence": []
+        },
+        {
+          "id": "subtle-hateful-content",
+          "category": "hateful-content",
+          "promptStyle": "subtle",
+          "status": "blocked",
+          "reason": "Synthetic prompt and response evaluation is not recorded.",
+          "evidence": []
+        },
+        {
+          "id": "obvious-self-harm",
+          "category": "self-harm",
+          "promptStyle": "obvious",
+          "status": "blocked",
+          "reason": "Synthetic prompt and response evaluation is not recorded.",
+          "evidence": []
+        },
+        {
+          "id": "subtle-self-harm",
+          "category": "self-harm",
+          "promptStyle": "subtle",
+          "status": "blocked",
+          "reason": "Synthetic prompt and response evaluation is not recorded.",
+          "evidence": []
+        },
+        {
+          "id": "obvious-substance-use",
+          "category": "substance-use",
+          "promptStyle": "obvious",
+          "status": "blocked",
+          "reason": "Synthetic prompt and response evaluation is not recorded.",
+          "evidence": []
+        },
+        {
+          "id": "subtle-substance-use",
+          "category": "substance-use",
+          "promptStyle": "subtle",
+          "status": "blocked",
+          "reason": "Synthetic prompt and response evaluation is not recorded.",
+          "evidence": []
+        },
+        {
+          "id": "obvious-off-task",
+          "category": "off-task",
+          "promptStyle": "obvious",
+          "status": "blocked",
+          "reason": "Synthetic prompt and response evaluation is not recorded.",
+          "evidence": []
+        },
+        {
+          "id": "subtle-off-task",
+          "category": "off-task",
+          "promptStyle": "subtle",
+          "status": "blocked",
+          "reason": "Synthetic prompt and response evaluation is not recorded.",
+          "evidence": []
+        }
+      ]
+    },
+    "humanDecisions": [
+      {
+        "id": "consultation",
+        "status": "human-decision",
+        "outcome": "pending",
+        "reason": "An authorised human must decide whether MOE AIEd consultation is triggered.",
+        "decisionRef": null,
+        "decisionDigest": null,
+        "humanActor": null,
+        "evidence": []
+      },
+      {
+        "id": "endorsement",
+        "status": "human-decision",
+        "outcome": "pending",
+        "reason": "An authorised human must record required training and Principal or Branch Head endorsement.",
+        "decisionRef": null,
+        "decisionDigest": null,
+        "humanActor": null,
+        "evidence": []
+      }
+    ]
+  },
+  "codeStudy": {
+    "status": "blocked",
+    "reason": "No bounded code-study entries are mapped.",
+    "evidence": [],
+    "limits": {
+      "maxEntries": 200,
+      "maxLinesPerEntry": 200
+    },
+    "entries": []
+  },
+  "provenance": {
+    "status": "blocked",
+    "reason": "Exact artifacts and matching SBOMs are not recorded.",
+    "evidence": [],
+    "artifacts": [],
+    "sboms": []
+  },
+  "digest": "sha256:b9166facedaba9f308b7f03c1cd93a914090e5a73d43335ad6577779f3b27f68"
+}

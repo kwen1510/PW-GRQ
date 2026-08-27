@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "bob/project-status/v2",
+  "projectId": "pw-grq",
+  "currentStage": "scale-contract",
+  "state": "blocked",
+  "sourceRevision": "sha256:f7266155a3235462f269dfe78bbcdb3f4516931d9fe8bc2e972861a4a8c8b2e4",
+  "workflowStateDigest": "sha256:a676a05c1c9e2819147aa2c0ca8fe052088d7b69565a7f511e056d98fb7b0203",
+  "pendingOwnerReviews": [
+    "Product roles and authority"
+  ],
+  "nextAction": "Present the named owner review with Bob's recommendation, then record the owner's decision.",
+  "updatedAt": "2026-08-27T09:15:24.702Z",
+  "generatedFrom": ".bob/workflow/state.json"
+}

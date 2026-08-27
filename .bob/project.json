@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "bob/project/v1",
+  "projectId": "pw-grq",
+  "mode": "build",
+  "entry": "adopt",
+  "executionModel": "one-conversation",
+  "bob": {
+    "version": "1.0.0-rc.2",
+    "commit": "71bc7adf848adcaf87e5c9c17f787758d386dc29",
+    "digest": "6ad0aebc99d575ff4ea075595f0873b4e428c0a5b9cf269bafc66c7b73d143dd"
+  },
+  "template": {
+    "id": "adopt-and-build",
+    "version": "1.0.0-rc.2"
+  },
+  "policy": {
+    "commit": "71bc7adf848adcaf87e5c9c17f787758d386dc29"
+  },
+  "createdAt": "2026-08-26T04:18:39.154Z"
+}

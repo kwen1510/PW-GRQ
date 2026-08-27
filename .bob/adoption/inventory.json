@@ -1,0 +1,239 @@
+{
+  "schemaVersion": "bob/adoption-inventory/v1",
+  "generatedAt": "2026-08-26T04:18:39.386Z",
+  "root": ".",
+  "bounded": true,
+  "limits": {
+    "maxFiles": 2000,
+    "maxEntries": 10000,
+    "maxFileBytes": 524288,
+    "maxTotalBytes": 8388608
+  },
+  "summary": {
+    "filesHashed": 34,
+    "bytesHashed": 448353,
+    "entriesVisited": 45,
+    "limitReached": false
+  },
+  "exclusions": {
+    "ignoredDirectoryCount": 3,
+    "secretShapedNameCount": 1,
+    "symbolicLinkCount": 0,
+    "unsupportedOrBinaryCount": 1,
+    "oversizedFileCount": 0,
+    "scanErrorCount": 0
+  },
+  "guarantees": {
+    "secretValuesRead": false,
+    "fileContentStored": false,
+    "symbolicLinksFollowed": false,
+    "providerAccessed": false
+  },
+  "files": [
+    {
+      "path": ".gitignore",
+      "bytes": 94,
+      "contentDigest": "sha256:2b9fee568b8ef18234676dd6cccd86b3af200edf46d45d6ca665cf0da6b489fc",
+      "kind": "source"
+    },
+    {
+      "path": "AGENTS.md",
+      "bytes": 534,
+      "contentDigest": "sha256:e368265c78415079a426360de8ccea044caab366b583d75a171f8f6a5777ce66",
+      "kind": "documentation"
+    },
+    {
+      "path": "DEPLOYMENT.md",
+      "bytes": 2305,
+      "contentDigest": "sha256:d075b19bd54bfc04ccace4b8720a451d0b2a755c882c813f594725bc4df86fd4",
+      "kind": "documentation"
+    },
+    {
+      "path": "docs/bob/AGENTIC-QA.md",
+      "bytes": 480,
+      "contentDigest": "sha256:5d8a66fd36bfd69ee106ee7731f496cd7a472eb4dff5c094d584ac037f578906",
+      "kind": "documentation"
+    },
+    {
+      "path": "docs/bob/APP-MAP.md",
+      "bytes": 242,
+      "contentDigest": "sha256:672c282e2ba5ad3ab5317f3dd26c3e4878a3c4b5084d286ceec4b6805ad8702a",
+      "kind": "documentation"
+    },
+    {
+      "path": "docs/bob/ASSEMBLY.md",
+      "bytes": 172,
+      "contentDigest": "sha256:375ef4950333935d713aa1ebc598855111713be2d31545661e651c3873873801",
+      "kind": "documentation"
+    },
+    {
+      "path": "docs/bob/ASSURANCE.md",
+      "bytes": 190,
+      "contentDigest": "sha256:bbcfac6512061769b41a202da9a6dd4ba76ba2a6a64735663e9e1f5dfcd0dc9f",
+      "kind": "documentation"
+    },
+    {
+      "path": "docs/bob/AUDIT-INDEX.md",
+      "bytes": 1570,
+      "contentDigest": "sha256:934f7220bff9fa8b4f8166b9c6f8fc5c71c638983710e5fae369026a57b4b086",
+      "kind": "documentation"
+    },
+    {
+      "path": "docs/bob/CAPACITY.md",
+      "bytes": 213,
+      "contentDigest": "sha256:538f7c6ff1887c2371783eceaba3e0e0f6532621504bf21553ce5ca9bc85ce88",
+      "kind": "documentation"
+    },
+    {
+      "path": "docs/bob/CRISIS-RUNBOOK.md",
+      "bytes": 1998,
+      "contentDigest": "sha256:b97106465dd0cfbc51e45f9563adcf74611fa34588d5908f611a367659afe3c9",
+      "kind": "documentation"
+    },
+    {
+      "path": "docs/bob/DATA-REGISTER.md",
+      "bytes": 816,
+      "contentDigest": "sha256:82cdba471b5dd9b9f20e47f5cc0eeee7a6cf269f235062f1a12034e4412adea3",
+      "kind": "documentation"
+    },
+    {
+      "path": "docs/bob/DECISIONS.md",
+      "bytes": 273,
+      "contentDigest": "sha256:4ea3f0cf8c7dfa9bbae92915b0a8ba28817a352bbb5e60b9186175360870429a",
+      "kind": "documentation"
+    },
+    {
+      "path": "docs/bob/FIX-LEDGER.md",
+      "bytes": 160,
+      "contentDigest": "sha256:cb620bef47557927c65f243f8a05d653a4d4538724553fabfa2895fb79d1aeca",
+      "kind": "documentation"
+    },
+    {
+      "path": "docs/bob/HANDOFF.md",
+      "bytes": 255,
+      "contentDigest": "sha256:68e88f35bae5f8ad0b87d5f548e82fd8319a8f3302a7bb1e2d0368b9f1e75f88",
+      "kind": "documentation"
+    },
+    {
+      "path": "docs/bob/LEARNING-LEDGER.md",
+      "bytes": 329,
+      "contentDigest": "sha256:9f247ea46dc1bb7e5b1e7453c42a31be7e3fdcdd4b41d7cae45a426145bd2b3c",
+      "kind": "documentation"
+    },
+    {
+      "path": "docs/bob/PROGRESS.md",
+      "bytes": 157,
+      "contentDigest": "sha256:ca4aaf6034d6333d77a18a324a886233b3f17221a58ee5eae5dec61fab450f12",
+      "kind": "documentation"
+    },
+    {
+      "path": "docs/bob/RELEASE.md",
+      "bytes": 233,
+      "contentDigest": "sha256:4d978ca788f281b8b08d9f601c6d3e38daa8ca6f2abb64ef977da1f46838dfe7",
+      "kind": "documentation"
+    },
+    {
+      "path": "docs/bob/REQUIREMENTS.md",
+      "bytes": 211,
+      "contentDigest": "sha256:611145345b49704e7ef48475531928b307e8a10b39b10c7a4e316789decac27b",
+      "kind": "documentation"
+    },
+    {
+      "path": "docs/bob/RISKS-AND-BLOCKERS.md",
+      "bytes": 223,
+      "contentDigest": "sha256:083e572375d6d77f4a8e735f12c55a1ad36e4143cb8ef1dc0666ee6f9941e4fc",
+      "kind": "documentation"
+    },
+    {
+      "path": "docs/bob/SECURITY.md",
+      "bytes": 261,
+      "contentDigest": "sha256:d50152cec7843878bd43ba5337e55d256dc2002b173a2a8d53a06b99fe4e114b",
+      "kind": "documentation"
+    },
+    {
+      "path": "docs/bob/START-HERE.md",
+      "bytes": 582,
+      "contentDigest": "sha256:f1599e79895422f244bb5439216a3a388ec350d055d6c7c0a649207d8d7254b1",
+      "kind": "documentation"
+    },
+    {
+      "path": "docs/bob/STATUS.md",
+      "bytes": 223,
+      "contentDigest": "sha256:290dc8f78ff29e6686f58df652c22cd8319b7bba16dc31a70c9e87d49d8aacb2",
+      "kind": "documentation"
+    },
+    {
+      "path": "docs/bob/TEST-LEDGER.md",
+      "bytes": 156,
+      "contentDigest": "sha256:7b8593ff1b6368e6e362becacc61a57ed190cea7e14cc0b7be7ad5e1d5775c38",
+      "kind": "documentation"
+    },
+    {
+      "path": "docs/bob/VERSION-LEDGER.md",
+      "bytes": 243,
+      "contentDigest": "sha256:5960ccb6b71e178519376a4ccbfc3c51cde4020a2896b454fd1095fe715e45da",
+      "kind": "documentation"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 66733,
+      "contentDigest": "sha256:59dd5c229f0c08b1bd302d74a3f93638590f037df54b08ef54ec24766f5c4bdc",
+      "kind": "configuration"
+    },
+    {
+      "path": "package.json",
+      "bytes": 662,
+      "contentDigest": "sha256:5f3001f6aa297e5abc6f2acafc3f46cc4042fa96c754bab09acf26efa0b90fec",
+      "kind": "configuration"
+    },
+    {
+      "path": "public/app.js",
+      "bytes": 144260,
+      "contentDigest": "sha256:718ebc445b3f611d5a037157d39d55da277af0a7e9e0e6107bbb09284d42192d",
+      "kind": "source"
+    },
+    {
+      "path": "public/history.html",
+      "bytes": 5519,
+      "contentDigest": "sha256:03561d1cb9afe6bdaff294941d011e9af09f88266f36141f7af1f6ef4fe97e69",
+      "kind": "frontend"
+    },
+    {
+      "path": "public/history.js",
+      "bytes": 136663,
+      "contentDigest": "sha256:41ccd8dd8191ef6a835a2025b5e442542dce0ccda8b6c5766b66f77cb0504802",
+      "kind": "source"
+    },
+    {
+      "path": "public/index.html",
+      "bytes": 17401,
+      "contentDigest": "sha256:df247d8020ed0d9736afce28ef26f3f7bad06fcb6a33f800c22d5e98f22a0fb2",
+      "kind": "frontend"
+    },
+    {
+      "path": "public/styles.css",
+      "bytes": 44478,
+      "contentDigest": "sha256:fd0c1bd02251a0f99062d826ff597a7245006f7f83cc4ae3de1ff3f35f1b2e8b",
+      "kind": "frontend"
+    },
+    {
+      "path": "README.md",
+      "bytes": 6169,
+      "contentDigest": "sha256:84118b3cafbbd4389f728a136627381c24de07efdcf756ed37b03ad351f43efc",
+      "kind": "documentation"
+    },
+    {
+      "path": "render.yaml",
+      "bytes": 388,
+      "contentDigest": "sha256:26b03d2894e33a892d47dc2783fe8de422c98b9a6434c8142c06553751e940a9",
+      "kind": "configuration"
+    },
+    {
+      "path": "server.js",
+      "bytes": 14160,
+      "contentDigest": "sha256:6f227c62abd626d485fbd5019a64d6a02ca706ee8c176917468e505a3e2a8386",
+      "kind": "source"
+    }
+  ],
+  "digest": "sha256:c007832118fa672c9a0dbd836a96dfdfe2063611b78acd86d97ee2c05d938a70"
+}

@@ -1,0 +1,706 @@
+{
+  "schemaVersion": "bob/project-workflow-definition/v1",
+  "projectId": "pw-grq",
+  "mode": "build",
+  "sourceOfTruth": {
+    "state": ".bob/workflow/state.json",
+    "history": ".bob/workflow/history/",
+    "decisions": ".bob/decisions/<gate-id>/<decision-digest>.json",
+    "humanView": "docs/bob/STATUS.md"
+  },
+  "stages": [
+    {
+      "stageId": "scale-contract",
+      "title": "Confirm the scale-up contract",
+      "environment": "entry",
+      "applicableModes": [
+        "build"
+      ],
+      "purpose": "Ask only the crucial role, authority, sensitive-data, concurrency and provider questions, with Bob recommendations.",
+      "humanGate": "H1",
+      "confirmation": null,
+      "deterministicChecks": [
+        "intake-inventory",
+        "role-resource-action-map",
+        "capacity-target-plan",
+        "audit-manifest",
+        "data-register"
+      ],
+      "outputs": [
+        "docs/bob/REQUIREMENTS.md",
+        "docs/bob/APP-MAP.md",
+        "docs/bob/AUDIT-INDEX.md",
+        "docs/bob/DATA-REGISTER.md",
+        "docs/bob/CRISIS-RUNBOOK.md",
+        ".bob/decisions/H1/"
+      ],
+      "stopConditions": [
+        "A role or authority boundary is unclear",
+        "Peak concurrency has no stated assumption",
+        "The owner has not accepted the product contract"
+      ]
+    },
+    {
+      "stageId": "characterization-tests",
+      "title": "Freeze accepted prototype behaviour",
+      "environment": "local",
+      "applicableModes": [
+        "build"
+      ],
+      "purpose": "Write unit, integration and Playwright journeys for accepted behaviour without turning known prototype defects into requirements.",
+      "humanGate": null,
+      "confirmation": null,
+      "deterministicChecks": [
+        "unit",
+        "integration",
+        "playwright-e2e",
+        "role-negative"
+      ],
+      "outputs": [
+        ".bob/evidence/test/",
+        "docs/bob/REQUIREMENTS.md"
+      ],
+      "stopConditions": [
+        "An accepted journey has no meaningful test",
+        "A test expectation conflicts with the accepted product contract"
+      ]
+    },
+    {
+      "stageId": "serious-local-build",
+      "title": "Build the serious local product",
+      "environment": "local",
+      "applicableModes": [
+        "build"
+      ],
+      "purpose": "Use reviewed blocks and contracts to build frontend, backend, identity, authority, data and reliability controls.",
+      "humanGate": null,
+      "confirmation": null,
+      "deterministicChecks": [
+        "build",
+        "typecheck",
+        "unit",
+        "integration"
+      ],
+      "outputs": [
+        "docs/bob/ASSEMBLY.md",
+        ".bob/evidence/build/"
+      ],
+      "stopConditions": [
+        "Required building block or provider adapter is missing",
+        "A valid characterization test regresses"
+      ]
+    },
+    {
+      "stageId": "local-assurance",
+      "title": "Prove deterministic local assurance",
+      "environment": "local",
+      "applicableModes": [
+        "build"
+      ],
+      "purpose": "Render the exact-revision test, role, database, route, scanner, coverage and migration results before load.",
+      "humanGate": "H3",
+      "confirmation": null,
+      "deterministicChecks": [
+        "unit",
+        "integration",
+        "playwright-e2e",
+        "database-authority",
+        "archmap",
+        "semgrep",
+        "gitleaks",
+        "dependency-audit",
+        "osv",
+        "trivy",
+        "sbom",
+        "sonarqube",
+        "coverage",
+        "mutation",
+        "minimum-safe-code",
+        "migration-rehearsal"
+      ],
+      "outputs": [
+        "docs/bob/SECURITY.md",
+        ".bob/evidence/security/",
+        ".bob/evidence/migration/"
+      ],
+      "stopConditions": [
+        "An applicable check is missing, error, partial or stale",
+        "A migration is destructive, irreversible, privilege-expanding or unknown and H3 is not approved"
+      ]
+    },
+    {
+      "stageId": "agentic-qa-adversarial",
+      "title": "Explore experience and adversarial paths",
+      "environment": "local",
+      "applicableModes": [
+        "build"
+      ],
+      "purpose": "After deterministic assurance, use bounded synthetic personas to explore usability and unexpected authorization paths that fixed Playwright journeys may miss.",
+      "humanGate": null,
+      "confirmation": null,
+      "deterministicChecks": [],
+      "outputs": [
+        "docs/bob/AGENTIC-QA.md",
+        ".bob/evidence/agentic/",
+        ".bob/learning/candidates.jsonl"
+      ],
+      "stopConditions": [
+        "Deterministic assurance is not sufficiently complete",
+        "The target, identities or exploration limits are not declared",
+        "An observation is presented as a validated finding without reproduction and authority-contract evidence"
+      ]
+    },
+    {
+      "stageId": "local-load-plan",
+      "title": "Review the local load plan",
+      "environment": "local",
+      "applicableModes": [
+        "build"
+      ],
+      "purpose": "Show the stable numbered traffic bundle, data volume, concurrency, duration, cost ceiling and fault boundaries without generating traffic.",
+      "humanGate": null,
+      "confirmation": "C1-local-load-scope",
+      "deterministicChecks": [
+        "load-selector"
+      ],
+      "outputs": [
+        "docs/bob/CAPACITY.md",
+        ".bob/plans/local-load.json",
+        ".bob/decisions/C1-local-load-scope/"
+      ],
+      "stopConditions": [
+        "Security is not passing",
+        "The owner has not approved the exact bounded load bundle"
+      ]
+    },
+    {
+      "stageId": "local-load",
+      "title": "Run bounded local load and recovery",
+      "environment": "local",
+      "applicableModes": [
+        "build"
+      ],
+      "purpose": "Run the approved normal, peak, spike, race, pressure and recovery scenarios against isolated local dependencies.",
+      "humanGate": null,
+      "confirmation": null,
+      "deterministicChecks": [
+        "local-load",
+        "fault-injection",
+        "recovery",
+        "post-load-security"
+      ],
+      "outputs": [
+        "docs/bob/CAPACITY.md",
+        ".bob/evidence/reliability/"
+      ],
+      "stopConditions": [
+        "The approved load-plan digest changed",
+        "Capacity, denial or recovery thresholds fail"
+      ]
+    },
+    {
+      "stageId": "provider-authority",
+      "title": "Confirm hosted providers and residency",
+      "environment": "staging",
+      "applicableModes": [
+        "build"
+      ],
+      "purpose": "Reuse prototype provider choices, prefer Singapore and show options and controls when Singapore is unavailable.",
+      "humanGate": "H2",
+      "confirmation": null,
+      "deterministicChecks": [
+        "provider-detection",
+        "provider-preview",
+        "residency-manifest",
+        "credential-scope-plan",
+        "cost-ceiling"
+      ],
+      "outputs": [
+        ".bob/providers/inventory.json",
+        ".bob/decisions/H2/",
+        "docs/bob/RELEASE.md"
+      ],
+      "stopConditions": [
+        "Provider identity, region, credential scope or cost is unknown",
+        "An overseas exception is not approved"
+      ]
+    },
+    {
+      "stageId": "staging-predeploy-bind",
+      "title": "Bind and authorize synthetic staging",
+      "environment": "staging",
+      "applicableModes": [
+        "build"
+      ],
+      "purpose": "Bind the provider account, team, project, environment, immutable staging target and clean exact source revision before any deployment mutation.",
+      "humanGate": "H4",
+      "confirmation": null,
+      "deterministicChecks": [
+        "staging-target-binding",
+        "clean-source-revision",
+        "staging-plan-digest",
+        "rollback-target",
+        "cleanup-scope"
+      ],
+      "outputs": [
+        ".bob/evidence/staging/predeploy-binding.json",
+        ".bob/decisions/H4/",
+        "docs/bob/RELEASE.md"
+      ],
+      "stopConditions": [
+        "The account, team, project, environment or immutable target is unknown",
+        "The source is dirty or differs from the approved exact revision",
+        "The H4 staging decision is missing, stale or bound to another plan"
+      ]
+    },
+    {
+      "stageId": "staging-deployment-identity",
+      "title": "Deploy and prove immutable staging identity",
+      "environment": "staging",
+      "applicableModes": [
+        "build"
+      ],
+      "purpose": "Deploy only the approved exact revision, record the provider deployment ID and prove that /health/version reports the same revision before any browser, load or security gate runs.",
+      "humanGate": null,
+      "confirmation": null,
+      "deterministicChecks": [
+        "private-provider-output-capture",
+        "provider-output-redaction-scan",
+        "immutable-deployment-id",
+        "health-version-revision-equality"
+      ],
+      "outputs": [
+        ".bob/evidence/staging/deployment-identity.json",
+        ".bob/evidence/staging/provider-output-safety.json",
+        "docs/bob/RELEASE.md"
+      ],
+      "stopConditions": [
+        "Provider output has not been privately captured, redacted and scanned",
+        "A token or secret is exposed and has not been revoked and rotated",
+        "The immutable deployment ID is missing",
+        "/health/version does not equal the approved exact revision"
+      ]
+    },
+    {
+      "stageId": "hosted-staging-gates",
+      "title": "Run exact-deployment synthetic staging gates",
+      "environment": "staging",
+      "applicableModes": [
+        "build"
+      ],
+      "purpose": "Run migration, browser, security, load, failure, recovery, rollback and cleanup checks only against the deployment whose health revision was proven equal.",
+      "humanGate": null,
+      "confirmation": null,
+      "deterministicChecks": [
+        "staging-migration",
+        "staging-auth",
+        "staging-database-authority",
+        "staging-playwright",
+        "staging-security",
+        "staging-load",
+        "staging-failure-recovery",
+        "backup-restore",
+        "rollback",
+        "cleanup"
+      ],
+      "outputs": [
+        ".bob/evidence/staging/",
+        "docs/bob/RELEASE.md"
+      ],
+      "stopConditions": [
+        "Deployment identity or /health/version evidence is missing, stale or mismatched",
+        "Synthetic data or test residue is outside the cleanup scope",
+        "Any applicable hosted check is not passing"
+      ]
+    },
+    {
+      "stageId": "production-readiness",
+      "title": "Prove production and monitoring readiness",
+      "environment": "production",
+      "applicableModes": [
+        "build"
+      ],
+      "purpose": "Show every production connection, missing human setup, monitoring signal, canary, rollback and residual risk before release.",
+      "humanGate": null,
+      "confirmation": null,
+      "deterministicChecks": [
+        "production-delta",
+        "production-prefix-branches",
+        "fresh-production-migration-manifest",
+        "fresh-target-empty",
+        "immutable-old-target-exclusions",
+        "credential-name-check",
+        "monitoring-connection-map",
+        "effective-canary-role-map",
+        "audit-documentation",
+        "crisis-readiness",
+        "incident-readiness",
+        "canary-plan",
+        "rollback-plan",
+        "final-security"
+      ],
+      "outputs": [
+        ".bob/decisions/H5/",
+        "docs/bob/AUDIT-INDEX.md",
+        "docs/bob/CRISIS-RUNBOOK.md",
+        "docs/bob/RELEASE.md",
+        "docs/bob/ASSURANCE.md"
+      ],
+      "stopConditions": [
+        "A production-only prefix or environment branch lacks deterministic local proof",
+        "The fresh-production migration manifest is not exact-byte bound or the target is not empty",
+        "An old target is excluded only by name instead of immutable ID",
+        "The H5 approval was withdrawn, superseded, consumed or changed",
+        "A required production or monitoring connection is unknown",
+        "Staging evidence is stale",
+        "The owner has not accepted residual risk and release scope"
+      ]
+    },
+    {
+      "stageId": "production-release",
+      "title": "Release the approved production canary",
+      "environment": "production",
+      "applicableModes": [
+        "build"
+      ],
+      "purpose": "After readiness evidence is complete, obtain an exact-evidence H5 decision, release only the approved revision and verify health, authenticated journeys, denial, logging and rollback.",
+      "humanGate": "H5",
+      "confirmation": null,
+      "deterministicChecks": [
+        "post-create-immutable-id-binding",
+        "runtime-identity-schema",
+        "canary",
+        "production-health",
+        "production-denial",
+        "production-logging",
+        "atomic-single-writer-evidence",
+        "rollback-readiness",
+        "post-rollback-health"
+      ],
+      "outputs": [
+        ".bob/evidence/production/",
+        "docs/bob/ASSURANCE.md"
+      ],
+      "stopConditions": [
+        "The H5 decision is no longer current and unconsumed",
+        "The H5 decision or revision binding drifted",
+        "The runtime identity schema is invalid or an available binding differs",
+        "Evidence is not one atomically written valid JSON document",
+        "Any canary or rollback check fails"
+      ]
+    },
+    {
+      "stageId": "continuous-monitoring",
+      "title": "Operate the product",
+      "environment": "continuous",
+      "applicableModes": [
+        "build"
+      ],
+      "purpose": "Show product-filtered health, usage, concurrency, queues, errors, costs, backups, provider drift and new setup items.",
+      "humanGate": null,
+      "confirmation": null,
+      "deterministicChecks": [
+        "health",
+        "usage",
+        "capacity",
+        "queue",
+        "error",
+        "cost",
+        "backup",
+        "provider-drift",
+        "dependency-update"
+      ],
+      "outputs": [
+        ".bob/evidence/operations/",
+        "docs/bob/STATUS.md"
+      ],
+      "stopConditions": [
+        "Required telemetry has no retained data and is presented as zero",
+        "An outage or material drift is unacknowledged"
+      ]
+    }
+  ],
+  "humanGates": [
+    {
+      "gateId": "H1",
+      "title": "Product roles and authority",
+      "condition": "always-in-build-mode",
+      "beforeStage": "characterization-tests",
+      "questions": [
+        "Who uses the product?",
+        "What may each role see, create, change and delete?",
+        "What concurrency and peak usage should it support?",
+        "Which data is sensitive?"
+      ],
+      "suggestions": [
+        "Start least-privileged",
+        "Separate authentication from application authorization",
+        "Use a stated conservative peak when usage is uncertain"
+      ],
+      "reviewArtifact": "docs/bob/REQUIREMENTS.md"
+    },
+    {
+      "gateId": "H2",
+      "title": "Provider, region, credentials and cost",
+      "condition": "before-first-hosted-staging",
+      "beforeStage": "staging-predeploy-bind",
+      "questions": [
+        "Do the detected prototype providers remain correct?",
+        "Are the Singapore selections acceptable?",
+        "Which overseas option is acceptable when Singapore is unavailable?",
+        "Are the scoped credential names and cost ceiling correct?"
+      ],
+      "suggestions": [
+        "Prefer Singapore for configurable data destinations",
+        "Reuse the prototype provider only when its authority and data boundaries remain suitable",
+        "Never place credential values in the decision artifact"
+      ],
+      "reviewArtifact": "docs/bob/RELEASE.md"
+    },
+    {
+      "gateId": "H3",
+      "title": "Risky data or permission change",
+      "condition": "only-when-risk-classifier-matches",
+      "beforeStage": "local-load-plan",
+      "questions": [
+        "Who gains or loses access in plain language?",
+        "Is any data rewritten or removed?",
+        "What cannot be rolled back?"
+      ],
+      "suggestions": [
+        "Use expand, migrate, verify and contract",
+        "Apply automatically only to a disposable local database",
+        "Delay destructive contraction until the new path has been observed"
+      ],
+      "reviewArtifact": ".bob/evidence/migration/review.json"
+    },
+    {
+      "gateId": "H4",
+      "title": "Hosted staging and failure testing",
+      "condition": "before-each-staging-campaign",
+      "beforeStage": "staging-predeploy-bind",
+      "questions": [
+        "Is this exact revision and provider account, team, project, environment and immutable target correct?",
+        "Are the synthetic identities, load shapes, failure injections, costs and cleanup scope acceptable?"
+      ],
+      "suggestions": [
+        "Use synthetic users and an approved staging inbox",
+        "Keep the campaign bounded and authenticated",
+        "Require rollback and cleanup proof"
+      ],
+      "reviewArtifact": "docs/bob/RELEASE.md"
+    },
+    {
+      "gateId": "H5",
+      "title": "Production and residual risk",
+      "condition": "after-readiness-evidence-before-each-production-release",
+      "beforeStage": "production-release",
+      "questions": [
+        "Do you accept this exact readiness evidence and residual-risk set?",
+        "Are real users, data, privacy, retention, DNS and billing approved?",
+        "Are all monitoring connections present?",
+        "Are the canary and rollback boundaries acceptable?"
+      ],
+      "suggestions": [
+        "Never substitute staging credentials or evidence",
+        "Bind the decision to the final readiness evidence digests",
+        "Release a bounded canary first",
+        "Keep production monitoring separate and product-filterable"
+      ],
+      "reviewArtifact": "docs/bob/ASSURANCE.md"
+    }
+  ],
+  "confirmations": [
+    {
+      "confirmationId": "C1-local-load-scope",
+      "title": "Approve the deterministic local load bundle",
+      "beforeStage": "local-load",
+      "reviewArtifact": ".bob/plans/local-load.json"
+    }
+  ],
+  "deterministicPolicy": {
+    "resultStates": [
+      "pass",
+      "fail",
+      "blocked",
+      "not-applicable"
+    ],
+    "missingApplicableCheck": "blocked",
+    "staleOrPartialEvidence": "blocked",
+    "suppressionsExclusionsOrDisabledTests": "blocked",
+    "humanExplanationMayChangeMachineResult": false
+  },
+  "agenticPolicy": {
+    "resultStates": [
+      "observation",
+      "plausible-finding",
+      "validated-finding",
+      "rejected"
+    ],
+    "deterministicSubstitutionAllowed": false,
+    "syntheticIdentitiesOnly": true,
+    "requiredBoundaries": [
+      "target",
+      "roles",
+      "duration",
+      "requests",
+      "cost",
+      "mutations"
+    ],
+    "adversarialFocus": [
+      "privilege-escalation",
+      "cross-user-access",
+      "direct-protected-api",
+      "role-object-tampering",
+      "session-replay",
+      "hidden-routes",
+      "degraded-mode-authorization"
+    ],
+    "validatedFindingAction": [
+      "deterministic-regression",
+      "root-cause-fix",
+      "affected-gates-rerun",
+      "learning-candidate"
+    ]
+  },
+  "databaseMigrationPolicy": {
+    "canonicalDirectory": "database/migrations/",
+    "sequence": [
+      "expand",
+      "copy-or-transform",
+      "verify",
+      "switch",
+      "observe",
+      "contract"
+    ],
+    "automaticApply": [
+      "disposable-local"
+    ],
+    "humanApprovalClasses": [
+      "privilege-expanding",
+      "destructive",
+      "irreversible",
+      "unknown",
+      "hosted-target"
+    ]
+  },
+  "deploymentControlPolicy": {
+    "checkpointSequence": [
+      "staging-predeploy-bind",
+      "staging-deployment-identity",
+      "hosted-staging-gates"
+    ],
+    "predeployBindings": [
+      "account",
+      "team",
+      "project",
+      "environment",
+      "source-revision"
+    ],
+    "cleanExactRevisionRequired": true,
+    "immutableStagingTargetRequired": true,
+    "deploymentIdEvidence": ".bob/evidence/staging/deployment-identity.json",
+    "healthEndpoint": "/health/version",
+    "healthRevisionEqualityRequiredBefore": [
+      "staging-playwright",
+      "staging-load",
+      "staging-security"
+    ],
+    "providerCliOutput": {
+      "classification": "untrusted-secret-bearing",
+      "capture": "private",
+      "evidenceEligibility": "redacted-and-scanned-only",
+      "tokenExposureResponse": [
+        "revoke",
+        "rotate",
+        "block-further-provider-actions"
+      ]
+    },
+    "gateSeparation": {
+      "staging": "H4",
+      "production": "H5",
+      "carryForward": false
+    },
+    "simulatedPlaceholders": {
+      "prove": "orchestration-only",
+      "certifyRealProductionRelease": false
+    }
+  },
+  "productionControlPolicy": {
+    "preH5LocalProof": [
+      "production-prefixes",
+      "production-environment-branches",
+      "fresh-production-migration-manifest"
+    ],
+    "freshMigration": {
+      "source": "production-only-manifest",
+      "exactReviewedBytes": true,
+      "targetMustBeEmpty": true,
+      "sharedStagingBundleAllowed": false
+    },
+    "targetIdentity": {
+      "excludeOldByImmutableId": true,
+      "requirePrecreateAbsence": true,
+      "requirePostcreateIdBinding": true
+    },
+    "approvalLifecycle": {
+      "signedIsConsumed": false,
+      "currentAtExecutionRequired": true,
+      "withdrawalOrSupersessionBlocksDigest": true,
+      "preserveSupersededReceipt": true
+    },
+    "gateLifetimes": {
+      "H3": "15m",
+      "H4": "2h",
+      "validateSiblingBindings": true,
+      "enforceCurrentGateFreshnessOnly": true
+    },
+    "canaryIdentity": {
+      "resolveEffectiveRolesBeforePlan": true,
+      "authBypassAllowed": false
+    },
+    "environmentEvidence": {
+      "sharedStagingMayProve": "non-production-rehearsal",
+      "sharedStagingMayCertifyProduction": false,
+      "reusableAndApplicationProofSeparated": true
+    },
+    "releaseIdentity": {
+      "requiredFields": [
+        "revision",
+        "treeDigest",
+        "archiveDigest",
+        "manifestDigest"
+      ],
+      "authoritativeReadback": "/health/version",
+      "schemaFailureClass": "verifier-schema",
+      "mismatchFailureClass": "deployment-mismatch",
+      "schemaFailureTriggersRedeploy": false
+    },
+    "evidenceWriter": {
+      "mode": "atomic-single-writer",
+      "exactlyOneJsonDocument": true,
+      "parserGateRequired": true
+    },
+    "rollback": {
+      "bindImmutableProjectAndDeploymentIds": true,
+      "requireReadyState": true,
+      "rejectConflictingMetadata": true,
+      "postRollbackHealthRequired": true
+    },
+    "boundedCampaign": {
+      "receiptWrittenAtomicallyByRunner": true,
+      "rerunBeyondApprovedCeiling": false,
+      "readOnlyReconstructionOrBlocked": true
+    }
+  },
+  "notificationPolicy": {
+    "telegram": [
+      "monitoring-active-once",
+      "confirmed-outage",
+      "confirmed-recovery"
+    ],
+    "commandsAccepted": false,
+    "sensitiveDetailsAllowed": false
+  },
+  "digest": "sha256:e540f86e005a815cdf97d923b486ef1bd1a62d8e6de1ca3297559a85fcfdd6d0"
+}

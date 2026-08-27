@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "bob/task-dispatch-receipts/v1",
+  "projectId": "pw-grq",
+  "receipts": [
+    {
+      "intentId": "sha256:eddfc20225ab1f199fd7ebdacb3566ca0a674445be3e64327bf3df73c14d28fa",
+      "taskKey": "bob-conversation",
+      "externalTaskId": "bob-current-conversation-bob-conversation",
+      "stateDigest": "sha256:4d96c8476162b3fb12dc9b8df5b9491a3ca13ae358e0b27a02c2eb55b7d02eca",
+      "recordedAt": "2026-08-26T04:18:39.720Z"
+    }
+  ],
+  "updatedAt": "2026-08-26T04:18:39.720Z",
+  "digest": "sha256:13119a1710869f49b454e458132d787c132fec8e49b9c4de6b9ddc7c6c606b39"
+}

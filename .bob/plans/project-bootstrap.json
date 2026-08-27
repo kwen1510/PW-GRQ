@@ -1,0 +1,158 @@
+{
+  "schemaVersion": "bob/project-bootstrap/v1",
+  "projectId": "pw-grq",
+  "entry": "adopt",
+  "projectRoot": ".",
+  "sourceRevision": "sha256:ecbdc72117844c64b9c0232005ced65a2f90870235a32ff3a517243aa4baacf8",
+  "configurationDigest": "sha256:7a266267b3607fbb905574b494281dc4f94467efebae634edd27bcde30a6f30b",
+  "workflowDefinitionDigest": "sha256:e540f86e005a815cdf97d923b486ef1bd1a62d8e6de1ca3297559a85fcfdd6d0",
+  "topologyConfirmed": true,
+  "tasks": [
+    {
+      "taskKey": "bob-conversation",
+      "title": "[pw-grq] Bob build conversation",
+      "purpose": "Coordinate intake, product implementation, deterministic assurance, owner review, agentic QA, learning and resumable handoff as one conversation.",
+      "ownershipPaths": [
+        ".bob",
+        "docs/bob"
+      ],
+      "outputPaths": [
+        ".bob",
+        "docs/bob"
+      ],
+      "gateIds": [
+        "scale-contract",
+        "characterization-tests",
+        "serious-local-build",
+        "local-assurance",
+        "agentic-qa-adversarial",
+        "local-load-plan",
+        "local-load",
+        "provider-authority",
+        "staging-predeploy-bind",
+        "staging-deployment-identity",
+        "hosted-staging-gates",
+        "production-readiness",
+        "production-release",
+        "continuous-monitoring"
+      ],
+      "dependsOn": []
+    }
+  ],
+  "gates": [
+    {
+      "gateId": "scale-contract",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ]
+    },
+    {
+      "gateId": "characterization-tests",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ]
+    },
+    {
+      "gateId": "serious-local-build",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ]
+    },
+    {
+      "gateId": "local-assurance",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ]
+    },
+    {
+      "gateId": "agentic-qa-adversarial",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ]
+    },
+    {
+      "gateId": "local-load-plan",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ]
+    },
+    {
+      "gateId": "local-load",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ]
+    },
+    {
+      "gateId": "provider-authority",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ]
+    },
+    {
+      "gateId": "staging-predeploy-bind",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ]
+    },
+    {
+      "gateId": "staging-deployment-identity",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ]
+    },
+    {
+      "gateId": "hosted-staging-gates",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ]
+    },
+    {
+      "gateId": "production-readiness",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ]
+    },
+    {
+      "gateId": "production-release",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ]
+    },
+    {
+      "gateId": "continuous-monitoring",
+      "ownerTaskKey": "bob-conversation",
+      "affectedBy": [
+        "revision",
+        "configuration"
+      ]
+    }
+  ],
+  "createdAt": "2026-08-26T04:18:39.720Z",
+  "digest": "sha256:879ac55f756f8f157e8123f8e065f097af387f5371aca672d689c6a9eb36110c"
+}

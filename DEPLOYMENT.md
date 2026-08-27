@@ -1,92 +1,68 @@
-# Quick Deployment Guide
+# Vercel deployment
 
-## 📋 Pre-Deployment Checklist
+## Required environment variables
 
-✅ All files copied to this folder  
-✅ package.json configured for production  
-✅ render.yaml created for Render configuration  
-✅ Environment variables template ready  
-✅ README.md with deployment instructions  
+Add these in Vercel for Production, Preview, and Development as appropriate:
 
-## 🚀 Deploy to Render in 5 Steps
+```env
+OPENAI_API_KEY=...
+MONGO_URI=mongodb+srv://...
+MONGO_DB_NAME=pw_grq
 
-### 1. Create GitHub Repository
+ALLOWED_TEACHER_DOMAIN=ri.edu.sg
+ALLOWED_TEACHER_EMAILS=teacher.one@ri.edu.sg,teacher.two@ri.edu.sg
+PROMPT_ADMIN_EMAILS=teacher.one@ri.edu.sg,teacher.two@ri.edu.sg
+
+FIREBASE_PROJECT_ID=...
+FIREBASE_WEB_API_KEY=...
+FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+FIREBASE_APP_ID=...
+```
+
+Optional model overrides:
+
+```env
+OPENAI_TRANSCRIPTION_MODEL=gpt-transcribe
+OPENAI_ANALYSIS_MODEL=gpt-5.6-luna
+```
+
+Do not deploy `.env`, OpenAI keys, MongoDB passwords, or Firebase service-account private keys. The server verifies Firebase ID tokens against Google's public signing keys and does not need a service-account key for this prototype.
+
+Authentication is always required on Vercel. `LOCAL_AUTH_BYPASS` is deliberately ignored there.
+
+## Firebase setup
+
+1. Create/select a Firebase project and web app.
+2. Enable Authentication → Sign-in method → Email/Password. Do not add a public sign-up flow.
+3. Confirm the approved teacher accounts already exist under Authentication → Users, or create them there with temporary passwords delivered privately.
+4. Add every final and preview hostname that will be used to Authentication → Settings → Authorized domains.
+5. Configure the variables above.
+6. Confirm that a listed teacher succeeds and an unlisted or `@students.ri.edu.sg` account receives HTTP 403.
+
+## Build and deploy
+
 ```bash
-# Create a new repository on GitHub
-# Upload all files from this render_deploy folder
-git init
-git add .
-git commit -m "Initial commit - Interview Transcription App"
-git branch -M main
-git remote add origin https://github.com/yourusername/your-repo-name.git
-git push -u origin main
+npm ci
+npm test
+npm run check
+npm audit --omit=dev
+vercel build
+vercel deploy
 ```
 
-### 2. Connect to Render
-- Go to https://dashboard.render.com/
-- Click "New +" → "Web Service"
-- Connect your GitHub repository
+Promote to production only after the preview passes:
 
-### 3. Configure Service
-- **Name**: interview-transcription-app
-- **Environment**: Node
-- **Build Command**: npm install
-- **Start Command**: npm start
-- **Plan**: Free (or upgrade as needed)
-
-### 4. Add Environment Variables
-In Render dashboard → Environment:
-```
-ELEVENLABS_API_KEY=your_actual_api_key
-OPENAI_API_KEY=your_actual_openai_key  # Optional
+```bash
+vercel --prod
 ```
 
-### 5. Deploy
-- Click "Create Web Service"
-- Wait for deployment to complete
-- Access your app at: https://your-service-name.onrender.com
+## Post-deployment checks
 
-## 🔑 Getting API Keys
+- `/api/health` reports `status: ready`, `mongoReady: true`, and `authRequired: true`.
+- Unauthenticated calls to protected `/api/*` endpoints return 401.
+- Listed teacher email/password sign-in works; unlisted and student-subdomain accounts are rejected.
+- A short synthetic/consented recording transcribes, survives a reload, retries with the same clip ID, and can be downloaded.
+- Prompt read and GPT analysis work; prompt mutation is limited to configured admins.
+- Phone and iPad portrait/landscape pages have no horizontal overflow.
 
-### ElevenLabs (Required)
-1. Sign up: https://elevenlabs.io/
-2. Go to Profile → API Keys
-3. Copy your key
-4. Add to Render environment variables
-
-### OpenAI (Optional)
-1. Sign up: https://platform.openai.com/
-2. Go to API Keys
-3. Create new key
-4. Add to Render environment variables
-
-## ✅ Verify Deployment
-
-After deployment, check:
-- [ ] App loads at your Render URL
-- [ ] Health check works: /api/health
-- [ ] Demo mode works without API keys
-- [ ] Real transcription works with API keys
-- [ ] All pages load (main, history, test)
-
-## 🔧 Troubleshooting
-
-**Build Fails?**
-- Check Node.js version in package.json
-- Verify all dependencies are listed
-
-**App Crashes?**
-- Check Render logs
-- Verify environment variables are set
-- Ensure API keys are valid
-
-**Microphone Issues?**
-- HTTPS is required (automatic on Render)
-- Check browser permissions
-
-## 💡 Tips
-
-- Use Free tier for testing
-- Upgrade to Starter ($7/month) for production
-- Monitor API usage and costs
-- Keep API keys secure 
+Vercel Functions accept limited request bodies, so the browser rotates small audio clips instead of sending a full interview at once. Local source audio remains in IndexedDB for recovery.

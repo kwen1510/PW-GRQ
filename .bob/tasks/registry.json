@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "bob/task-registry/v1",
+  "projectId": "pw-grq",
+  "sourceRevision": "sha256:f7266155a3235462f269dfe78bbcdb3f4516931d9fe8bc2e972861a4a8c8b2e4",
+  "configurationDigest": "sha256:b137ca00109cf3074f17e5c9211f43af5ffc53e65db678eab0b1f3daebfb818f",
+  "tasks": [
+    {
+      "taskKey": "bob-conversation",
+      "title": "[pw-grq] Bob build conversation",
+      "purpose": "Coordinate intake, product implementation, deterministic assurance, owner review, agentic QA, learning and resumable handoff as one conversation.",
+      "ownershipPaths": [
+        ".bob",
+        "docs/bob"
+      ],
+      "outputPaths": [
+        ".bob",
+        "docs/bob"
+      ],
+      "gateIds": [
+        "scale-contract",
+        "characterization-tests",
+        "serious-local-build",
+        "local-assurance",
+        "agentic-qa-adversarial",
+        "local-load-plan",
+        "local-load",
+        "provider-authority",
+        "staging-predeploy-bind",
+        "staging-deployment-identity",
+        "hosted-staging-gates",
+        "production-readiness",
+        "production-release",
+        "continuous-monitoring"
+      ],
+      "dependsOn": [],
+      "externalTaskId": "bob-current-conversation-bob-conversation",
+      "status": "working",
+      "lastCursor": null,
+      "evidenceIds": []
+    }
+  ],
+  "updatedAt": "2026-08-27T09:15:24.702Z",
+  "digest": "sha256:3db1f720d5e12fd110bd35eed31f3e69281c19b9652925dbdc49e7468c7acba3"
+}
