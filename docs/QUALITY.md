@@ -35,7 +35,7 @@ The repository workflow accepts a supplied `SONAR_TOKEN`, or can use `SONAR_ADMI
 
 ## Release status
 
-The previous 2.1.9 candidate remains deployed at `https://pw-grq-zeta.vercel.app` as immutable deployment `dpl_6aH1CbNgf7RDXGvH36xKpbnTjm1e`. The 2.1.10 immutable deployment identity and production checks will replace this paragraph after release.
+The 2.1.10 candidate is deployed to `https://pw-grq-zeta.vercel.app` as immutable deployment `dpl_uqYe6sxLZavrEdvPj4uokpJxv1Az`. The live health endpoint reports OpenAI, MongoDB, Firebase and authentication ready. Production denies unauthenticated identity and prompt access, serves the 2.1.10 browser assets, and passes the password-login layout at 320×568, 375×812, 768×1024, 1024×768 and 1440×900 without horizontal overflow or undersized visible buttons. The check did not send email, change a password, upload audio or call OpenAI.
 
 Firebase currently rejects both email-template and action-URL saves with “Email template updates are currently unavailable for this project.” Consequently, the custom reset handler is implemented and tested but Firebase-generated emails will continue to use Firebase's default sender, wording and hosted reset page until a project owner or Firebase Support enables template updates and sets the action URL to `https://pw-grq-zeta.vercel.app/reset-password.html`. No live template change is claimed.
 
