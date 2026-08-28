@@ -38,3 +38,9 @@ The proper fix is:
 I would raise the enforced threshold progressively—60%, then 70%, then 80%—while still keeping 80% as the final target. Based on the present codebase, reaching a meaningful 80% likely requires roughly 25–40 additional focused tests plus browser-coverage instrumentation. Simply lowering the Sonar threshold would make it green, but would not improve reliability.
 
 Can you do everything that you have suggested, then launch them?
+
+---
+
+Okay, so, well, I want to make sure that the data is actually stored within the teacher's device and doesn't go out to the web. So I want it to be able to just keep for that teachers use themselves. And yeah, so I want you to update everything, including the prompt and test the whole system. At the end of the day, answer all their queries. But for the last part, yeah, just keep it within the teacher's device and not the central database. If I want to use a central database then for analysis in the future, then I will actually ask everyone to allow everyone to do that.
+
+Okay, so can you solve this person's problem, build everything, test it, and then let me know when it is ready to share. So it must be deployed and tested also. Please remember to use Semgrep and SonarQube only. Yeah, then let me know.

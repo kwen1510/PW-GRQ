@@ -6,16 +6,17 @@
   <meta name="theme-color" content="#173f6b">
   <title>Session history · PW Interview Recorder</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/styles.css?v=2.1.10">
-  <link rel="stylesheet" href="/workflow.css?v=2.1.10">
-  <script defer src="/assets/history.js?v=2.1.10"></script>
+  <link rel="stylesheet" href="/styles.css?v=2.2.0">
+  <link rel="stylesheet" href="/analysis.css?v=2.2.0">
+  <link rel="stylesheet" href="/workflow.css?v=2.2.0">
+  <script defer src="/assets/history.js?v=2.2.0"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to main content</a>
   <header class="topbar"><div class="shell topbar-inner"><a class="brand" href="/"><span class="brand-mark" aria-hidden="true">RI</span><span><strong>Session history</strong><small>Local recordings and transcripts</small></span></a><a class="button secondary" href="/">New interview</a></div></header>
   <main id="main" class="shell page-stack">
-    <section class="section-heading history-heading"><div><p class="eyebrow">On this device</p><h1>Saved sessions</h1><p class="muted">Sessions and audio are stored in this browser only unless you download a backup.</p></div><button id="retryAllButton" class="button secondary" type="button">Retry pending clips</button></section>
-    <div class="context-bar"><div id="historyStatus">Loading local sessions…</div></div>
+    <section class="section-heading history-heading"><div><p class="eyebrow">Private to this device</p><h1>Saved sessions and analyses</h1><p class="muted">Recordings, transcripts and analysis reports are kept in this teacher’s browser—not in a central session database. Download a backup before clearing browser data or changing devices.</p></div><button id="retryAllButton" class="button secondary" type="button">Retry pending clips</button></section>
+    <div class="context-bar"><div id="historyStatus">Loading local sessions…</div><div id="historyStorage">Checking available device storage…</div></div>
     <section id="historyLoading" class="history-list skeleton-stack" aria-label="Loading saved sessions" aria-busy="true">
       <div class="skeleton-card" aria-hidden="true"><span class="skeleton-line skeleton-line-title"></span><span class="skeleton-line skeleton-line-medium"></span><span class="skeleton-line"></span><span class="skeleton-line skeleton-line-short"></span></div>
       <div class="skeleton-card" aria-hidden="true"><span class="skeleton-line skeleton-line-title"></span><span class="skeleton-line skeleton-line-short"></span><span class="skeleton-line"></span><span class="skeleton-line skeleton-line-medium"></span></div>

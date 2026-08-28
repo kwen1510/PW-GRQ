@@ -17,6 +17,7 @@ import {
 } from './db.js';
 import { DurableRecorder } from './recorder.js';
 import { createAudioZip } from './audio-export.js';
+import { analysisAsText, analysisFilename, renderAnalysis } from './analysis-report.mjs';
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -63,7 +64,7 @@ function ensurePasswordForm() {
 
   heading.textContent = 'Sign in to PW Interview Recorder';
   const intro = heading.nextElementSibling;
-  if (intro) intro.textContent = 'Use your existing teacher username and password. Access is limited to approved RI teacher accounts.';
+  if (intro) intro.textContent = 'Use an administrator-approved teacher or admin account. New users should use First login or forgot password to set their password.';
 
   const form = document.createElement('form');
   form.id = 'signInForm';
@@ -468,8 +469,9 @@ async function runAnalysis() {
   const prompt = $('#analysisPrompt').value.trim();
   if (!prompt) return message($('#analysisStatus'), 'Choose a saved prompt or enter analysis instructions.', 'error');
   const clips = await allSessionClips();
-  const results = [];
+  const questions = [];
   $('#runAnalysisButton').disabled = true;
+  $('#runAnalysisButton').setAttribute('aria-busy', 'true');
   try {
     for (let index = 0; index < state.session.questions.length; index += 1) {
       const question = state.session.questions[index];
@@ -477,17 +479,31 @@ async function runAnalysis() {
       if (!transcript) continue;
       message($('#analysisStatus'), `Analysing question ${index + 1}…`);
       const result = await api('/api/analyze', { method: 'POST', body: JSON.stringify({ prompt, transcript, question: question.text, studentNames: state.session.students }) });
-      results.push(`QUESTION ${index + 1}: ${question.text}\n\n${result.analysis}`);
+      questions.push({ questionId: question.id, question: question.text, analysis: result.analysis });
     }
-    if (!results.length) throw new Error('No completed transcripts are available for analysis. Retry pending clips first.');
-    const report = results.join('\n\n────────────────────\n\n');
-    $('#analysisResult').textContent = report;
+    if (!questions.length) throw new Error('No completed transcripts are available for analysis. Retry pending clips first.');
+    const selectedPrompt = state.prompts.find((item) => item._id === $('#promptSelect').value);
+    const record = {
+      id: crypto.randomUUID(),
+      title: `Analysis ${state.session.analyses.length + 1}`,
+      promptId: selectedPrompt?._id || null,
+      promptName: selectedPrompt?.name || 'Custom instructions',
+      prompt,
+      questions,
+      createdAt: new Date().toISOString()
+    };
+    $('#analysisResult').replaceChildren(renderAnalysis(record));
     show($('#analysisResult'), true);
-    message($('#analysisStatus'), 'Analysis complete and saved locally.', 'success');
-    state.session.analyses.push({ id: crypto.randomUUID(), prompt, report, createdAt: new Date().toISOString() });
+    $('#downloadLatestAnalysisButton').onclick = () => download(
+      new Blob([analysisAsText(record, state.session.title)], { type: 'text/plain;charset=utf-8' }),
+      analysisFilename(record)
+    );
+    show($('#downloadLatestAnalysisButton'), true);
+    message($('#analysisStatus'), 'Analysis complete. It is saved only in this browser and is available in Session history.', 'success');
+    state.session.analyses.push(record);
     await putSession(state.session);
   } catch (error) { message($('#analysisStatus'), error.message, 'error'); }
-  finally { $('#runAnalysisButton').disabled = false; }
+  finally { $('#runAnalysisButton').disabled = false; $('#runAnalysisButton').removeAttribute('aria-busy'); }
 }
 
 async function loadPrompts() {

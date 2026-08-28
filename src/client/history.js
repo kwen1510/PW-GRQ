@@ -1,7 +1,8 @@
 import { api } from './api.js';
 import { initializeAuthentication } from './auth.js';
-import { DATA_CHANGE_EVENT, deleteSession, getClipBlob, getSession, listClips, listPendingClips, listSessions, recoverInterruptedClips, setActiveOwner, updateClip } from './db.js';
+import { DATA_CHANGE_EVENT, deleteSession, getClipBlob, getSession, listClips, listPendingClips, listSessions, recoverInterruptedClips, setActiveOwner, storageEstimate, updateClip } from './db.js';
 import { createAudioZip } from './audio-export.js';
+import { analysisAsText, analysisFilename, renderAnalysis } from './analysis-report.mjs';
 
 const $ = (selector) => document.querySelector(selector);
 let deleteId = null;
@@ -24,6 +25,11 @@ function scheduleHistoryRefresh(delay = 250) {
 
 function toast(text) { const node = $('#toast'); node.textContent = text; node.classList.remove('hidden'); clearTimeout(toast.timer); toast.timer = setTimeout(() => node.classList.add('hidden'), 2500); }
 function download(blob, filename) { const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = filename; document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000); }
+function formatBytes(bytes) {
+  if (!Number.isFinite(bytes)) return 'unknown';
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 async function processClip(clipId) {
   if (processing.has(clipId)) return;
@@ -59,6 +65,14 @@ async function exportSession(session) {
   const clips = await listClips(session.id);
   const data = { format: 'pw-grq-backup/v2', exportedAt: new Date().toISOString(), session, clips: clips.map(({ id, questionId, speaker, status, transcript, error, createdAt, mimeType }) => ({ id, questionId, speaker, status, transcript, error, createdAt, mimeType })) };
   download(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }), `pw-grq-${session.id}.json`);
+}
+
+function exportAnalysis(session, analysis) {
+  download(
+    new Blob([analysisAsText(analysis, session.title || 'PW GRQ session')], { type: 'text/plain;charset=utf-8' }),
+    analysisFilename(analysis)
+  );
+  toast('Downloaded the selected analysis.');
 }
 
 async function exportAudio(session, button) {
@@ -133,6 +147,19 @@ async function makeCard(session) {
   });
   const clipsById = new Map(clips.map((clip) => [clip.id, clip]));
   details.addEventListener('toggle', () => { if (details.open) loadPlayers(details, clipsById); });
+  const analyses = Array.isArray(session.analyses) ? session.analyses : [];
+  let analysisDetails = null;
+  if (analyses.length) {
+    analysisDetails = document.createElement('details'); analysisDetails.className = 'history-details history-analysis-details';
+    const analysisSummary = document.createElement('summary'); analysisSummary.textContent = `View saved analyses (${analyses.length})`; analysisDetails.append(analysisSummary);
+    analyses.slice().reverse().forEach((analysis) => {
+      const saved = document.createElement('div'); saved.className = 'saved-analysis';
+      saved.append(renderAnalysis(analysis));
+      const analysisActions = document.createElement('div'); analysisActions.className = 'action-wrap analysis-actions';
+      analysisActions.append(button('Download this analysis (.txt)', 'secondary', () => exportAnalysis(session, analysis)));
+      saved.append(analysisActions); analysisDetails.append(saved);
+    });
+  }
   const actions = document.createElement('div'); actions.className = 'action-wrap';
   actions.append(button('Download backup', 'secondary', () => exportSession(session)), button('Download audio (.zip)', 'secondary', (event) => exportAudio(session, event.currentTarget)));
   if (pending) {
@@ -144,7 +171,9 @@ async function makeCard(session) {
     }));
   }
   actions.append(button('Delete', 'ghost-danger', () => { deleteId = session.id; $('#deleteDialog').showModal(); }));
-  card.append(header, meta, details, actions); return card;
+  card.append(header, meta, details);
+  if (analysisDetails) card.append(analysisDetails);
+  card.append(actions); return card;
 }
 
 async function render() {
@@ -152,6 +181,8 @@ async function render() {
   const sessions = await listSessions(); const list = $('#historyList'); list.replaceChildren();
   const pending = await listPendingClips();
   $('#historyStatus').textContent = `${sessions.length} session${sessions.length === 1 ? '' : 's'} saved locally · ${pending.length} pending clip${pending.length === 1 ? '' : 's'}`;
+  const estimate = await storageEstimate();
+  $('#historyStorage').textContent = estimate ? `Device storage: ${formatBytes(estimate.usage)} used · ${formatBytes(estimate.quota)} available` : 'Device storage estimate unavailable';
   if (!sessions.length) {
     const empty = document.createElement('div'); empty.className = 'panel empty-state'; empty.textContent = 'No sessions have been recorded on this device.'; list.append(empty); finishLoading(); return;
   }

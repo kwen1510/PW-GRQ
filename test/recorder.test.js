@@ -19,6 +19,10 @@ class MockMediaRecorder {
   }
 }
 
+function setNavigator(value) {
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, writable: true, value });
+}
+
 test('a saved clip rotates without waiting for network transcription', async () => {
   await build({
     entryPoints: [path.join(__dirname, '../src/client/recorder.js')],
@@ -44,12 +48,12 @@ test('a saved clip rotates without waiting for network transcription', async () 
   global.__recorderTest = { clips: [], chunks: [], updates: [] };
   global.MediaRecorder = MockMediaRecorder;
   const track = { stop() {}, getSettings: () => ({ sampleRate: 48000 }) };
-  global.navigator = {
+  setNavigator({
     mediaDevices: {
       getUserMedia: async () => ({ getAudioTracks: () => [track], getTracks: () => [track] }),
       enumerateDevices: async () => [{ kind: 'audioinput', deviceId: 'mic-1', label: 'Test microphone' }]
     }
-  };
+  });
 
   let finishUpload;
   const upload = new Promise((resolve) => { finishUpload = resolve; });
@@ -76,12 +80,12 @@ test('disconnect returns the final durable clip ID without waiting for transcrip
   global.__recorderTest = { clips: [], chunks: [], updates: [] };
   global.MediaRecorder = MockMediaRecorder;
   const track = { stopped: false, stop() { this.stopped = true; }, getSettings: () => ({ sampleRate: 48000 }) };
-  global.navigator = {
+  setNavigator({
     mediaDevices: {
       getUserMedia: async () => ({ getAudioTracks: () => [track], getTracks: () => [track] }),
       enumerateDevices: async () => [{ kind: 'audioinput', deviceId: 'mic-1', label: 'Test microphone' }]
     }
-  };
+  });
 
   let finishUpload;
   const upload = new Promise((resolve) => { finishUpload = resolve; });

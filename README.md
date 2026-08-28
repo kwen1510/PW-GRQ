@@ -7,7 +7,9 @@ A resilient, iPad-friendly group interview recorder for RI teachers. Audio is sa
 - Records from a selected browser microphone and shows the device label (including a best-effort Bluetooth hint).
 - Rotates recordings into small clips and preserves every completed chunk locally.
 - Retries failed uploads using a stable clip ID; the server caches completed transcriptions for 24 hours.
-- Stores sessions, transcripts and source audio in IndexedDB, supports in-browser clip replay, and downloads all session audio as one ZIP archive.
+- Stores sessions, transcripts, source audio and analysis reports only in the signed-in teacher's IndexedDB, supports in-browser replay, and never writes these session records to the central database.
+- Presents each analysis as a structured, question-by-question report with clearly marked strengths, improvement areas, student feedback, follow-up questions and content areas students could research or include.
+- Retains past analyses in local Session history and lets teachers download each report as a readable text file, in addition to the complete session backup and audio ZIP.
 - Loads shared analysis prompts from MongoDB, automatically selects the administrator-managed default, labels it `[default]` for teachers, and lets teachers choose any other saved prompt for an individual analysis.
 - Shows immediate startup, local-history and prompt-loading feedback during slower authentication or browser-storage work.
 - Keeps service readiness, local-backup usage, pending-clip counts and session history current as recordings change, when another tab updates the same browser data, and when the page regains focus.
@@ -51,6 +53,10 @@ vercel build
 During recording, each one-second `MediaRecorder` chunk is committed to IndexedDB. Clips rotate every 40 seconds, well below Vercel's request-size limit at the configured 96 kbps bitrate. A clip is marked uploadable only after all its chunks are saved. Upload and transcription happen independently, so a slow API does not pause the next recording clip.
 
 If the page reloads during recording or upload, the clip is recovered into the retry queue. The original audio remains available for retry and download until the teacher explicitly deletes the local session or clears browser storage. Teachers should still download a session backup before clearing Safari/Chrome data.
+
+Completed sessions, transcripts, audio and analysis reports are not persisted to MongoDB or another central repository. They remain scoped to the verified teacher account inside that browser profile. History shows the browser's current storage estimate; capacity varies by device and browser, and audio uses substantially more space than transcript or analysis text.
+
+Local-only retention does not mean offline processing: a selected audio clip is sent to OpenAI for transcription, and the relevant transcript is sent to OpenAI when the teacher requests analysis. The application receives the result and saves it locally. MongoDB contains only shared prompt definitions, default-prompt settings, transient idempotency jobs and aggregate usage quotas—not teacher session content.
 
 ## Authentication
 

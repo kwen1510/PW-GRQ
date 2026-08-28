@@ -1,6 +1,6 @@
 {
   "name": "pw-grq",
-  "version": "2.1.10",
+  "version": "2.2.0",
   "private": true,
   "description": "Resilient group interview recording and analysis for teachers",
   "main": "server.js",

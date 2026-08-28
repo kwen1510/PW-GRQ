@@ -59,6 +59,27 @@ async function withCoverage(page, journey) {
   }
 }
 
+async function assertResponsive(page, readySelector) {
+  for (const viewport of [
+    { width: 320, height: 568 }, { width: 375, height: 812 },
+    { width: 768, height: 1024 }, { width: 1024, height: 768 }, { width: 1440, height: 900 }
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.locator(readySelector).waitFor({ state: 'visible' });
+    const layout = await page.evaluate(() => {
+      const visibleControls = [...document.querySelectorAll('button, a.button, input, select, summary')]
+        .filter((element) => { const rect = element.getBoundingClientRect(); return rect.width > 0 && rect.height > 0; });
+      return {
+        viewport: window.innerWidth,
+        pageWidth: document.documentElement.scrollWidth,
+        undersized: visibleControls.filter((element) => element.getBoundingClientRect().height < 43.5).map((element) => element.id || element.textContent?.trim() || element.tagName)
+      };
+    });
+    assert.ok(layout.pageWidth <= layout.viewport + 1, `horizontal overflow at ${viewport.width}px: ${layout.pageWidth}px`);
+    assert.deepEqual(layout.undersized, [], `undersized controls at ${viewport.width}px`);
+  }
+}
+
 function localApiRouter(state) {
   return async (route) => {
     const request = route.request();
@@ -80,7 +101,15 @@ function localApiRouter(state) {
     }
     if (pathname === '/api/analyze' && method === 'POST') {
       if (state.analysisFailure) return route.fulfill({ status: 503, json: { error: 'Temporary analysis failure', retryable: true } });
-      return route.fulfill({ json: { success: true, analysis: 'Synthetic evidence-based analysis.' } });
+      return route.fulfill({ json: { success: true, analysis: {
+        summary: 'Synthetic evidence-based analysis.',
+        strengths: ['The group stated a clear purpose.'],
+        improvementAreas: ['Support the proposal with verified evidence.'],
+        suggestedContentAreas: [{ area: 'Stakeholder impact', whyItMatters: 'It broadens the evaluation.', researchDirection: 'Research affected local groups and verify the findings.' }],
+        studentFeedback: [{ student: 'Jan', evidence: 'Jan identified an intended outcome.', nextStep: 'Add a sourced example.' }],
+        followUpQuestions: ['What evidence supports this expected impact?'],
+        evidenceLimitations: ['The synthetic transcript is brief.']
+      } } });
     }
     if (pathname === '/api/prompts' && method === 'GET') {
       if (state.promptFailure) return route.fulfill({ status: 503, json: { error: 'Prompt service unavailable' } });
@@ -222,7 +251,11 @@ async function localApplicationJourney(browser) {
     await page.locator('#promptSelect').selectOption('pirate');
     await page.waitForFunction(() => document.querySelector('#analysisPrompt').value.includes('pirate'));
     await page.locator('#runAnalysisButton').click();
-    await page.getByText('Synthetic evidence-based analysis.').waitFor();
+    await page.getByText('Synthetic evidence-based analysis.').first().waitFor();
+    await page.getByRole('heading', { name: 'Suggested content to strengthen the response' }).first().waitFor();
+    await page.getByText('Stakeholder impact').first().waitFor();
+    await page.locator('#downloadLatestAnalysisButton').click();
+    await assertResponsive(page, '#analysisResult');
     state.analysisFailure = true;
     await page.locator('#runAnalysisButton').click();
     await page.getByText('Temporary analysis failure').waitFor();
@@ -262,7 +295,14 @@ async function localApplicationJourney(browser) {
 
     await page.goto(`${baseUrl}/history.html`, { waitUntil: 'domcontentloaded' });
     await page.locator('.history-card').waitFor();
-    await page.locator('.history-details summary').click();
+    await page.getByText(/Device storage: .* used .* available/).waitFor();
+    await page.getByText('1 analyses').waitFor();
+    await page.getByText('View saved analyses (1)').click();
+    await page.getByText('Stakeholder impact').first().waitFor();
+    await page.getByRole('button', { name: 'Download this analysis (.txt)' }).click();
+    await page.getByText('Downloaded the selected analysis.').waitFor();
+    await assertResponsive(page, '.history-analysis-details');
+    await page.getByText('View transcript', { exact: true }).click();
     await page.waitForFunction(() => [...document.querySelectorAll('audio[data-clip-id]')].every((player) => player.src));
     await page.getByRole('button', { name: 'Download backup' }).click();
     await page.getByRole('button', { name: 'Download audio (.zip)' }).click();

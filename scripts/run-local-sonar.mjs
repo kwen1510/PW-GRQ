@@ -38,6 +38,15 @@ async function form(route, values, authorization) {
   }, authorization);
 }
 
+async function optionalHotspots(authorization) {
+  try {
+    return await request(`/api/hotspots/search?projectKey=${projectKey}&status=TO_REVIEW&ps=500`, {}, authorization);
+  } catch (error) {
+    if (error.message.includes('HTTP 403')) return null;
+    throw error;
+  }
+}
+
 if (!token && !adminPassword) {
   throw new Error(
     "Set SONAR_TOKEN, or set SONAR_ADMIN_PASSWORD to use a short-lived local analysis token."
@@ -92,16 +101,22 @@ try {
 
   const [issues, hotspots, gate, measures] = await Promise.all([
     request(`/api/issues/search?componentKeys=${projectKey}&resolved=false&ps=500`, {}, readAuth),
-    request(`/api/hotspots/search?projectKey=${projectKey}&status=TO_REVIEW&ps=500`, {}, readAuth),
+    optionalHotspots(readAuth),
     request(`/api/qualitygates/project_status?projectKey=${projectKey}`, {}, readAuth),
     request(`/api/measures/component?component=${projectKey}&metricKeys=coverage,duplicated_lines_density,bugs,vulnerabilities,security_hotspots,code_smells,ncloc`, {}, readAuth)
   ]);
+  const measureMap = Object.fromEntries((measures.component?.measures || []).map((measure) => [measure.metric, measure.value]));
+  const measuredHotspots = Number(measureMap.security_hotspots);
+  const hotspotCount = hotspots
+    ? (hotspots.paging?.total ?? hotspots.hotspots?.length ?? 0)
+    : (Number.isFinite(measuredHotspots) ? measuredHotspots : null);
   const summary = {
     revision: execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim(),
     dirty: execFileSync("git", ["status", "--porcelain"], { cwd: root, encoding: "utf8" }).trim().length > 0,
     task: { id: task.id, status: task.status, analysisId: task.analysisId },
     issueCount: issues.paging?.total ?? issues.issues?.length ?? 0,
-    hotspotCount: hotspots.paging?.total ?? hotspots.hotspots?.length ?? 0,
+    hotspotCount,
+    hotspotSource: hotspots ? 'hotspots-api' : 'project-measure',
     qualityGate: gate.projectStatus?.status || "UNKNOWN",
     measures: measures.component?.measures || [],
     scannerCompleted: scannerOutput.includes("EXECUTION SUCCESS"),
@@ -114,7 +129,7 @@ try {
     { mode: 0o600 }
   );
   console.log(JSON.stringify(summary, null, 2));
-  if (summary.issueCount || summary.hotspotCount || !summary.scannerCompleted) process.exitCode = 1;
+  if (summary.issueCount || summary.hotspotCount || summary.hotspotCount == null || !summary.scannerCompleted) process.exitCode = 1;
 } finally {
   if (temporaryToken) {
     await form(

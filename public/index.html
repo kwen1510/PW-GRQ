@@ -6,9 +6,10 @@
   <meta name="theme-color" content="#173f6b">
   <title>PW Group Interview Recorder</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/styles.css?v=2.1.10">
-  <link rel="stylesheet" href="/workflow.css?v=2.1.10">
-  <script defer src="/assets/app.js?v=2.1.10"></script>
+  <link rel="stylesheet" href="/styles.css?v=2.2.0">
+  <link rel="stylesheet" href="/analysis.css?v=2.2.0">
+  <link rel="stylesheet" href="/workflow.css?v=2.2.0">
+  <script defer src="/assets/app.js?v=2.2.0"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to main content</a>
@@ -49,7 +50,7 @@
     <section id="authGate" class="panel auth-panel hidden" aria-labelledby="authTitle">
       <p class="eyebrow">Teacher access</p>
       <h1 id="authTitle">Sign in to PW Interview Recorder</h1>
-      <p>Use your existing teacher username and password. Access is limited to approved RI teacher accounts.</p>
+      <p>Use an administrator-approved teacher or admin account. New users should use First login or forgot password to set their password.</p>
       <form id="signInForm" class="auth-form">
         <div class="field-group">
           <label for="signInEmail">Username (RI email)</label>
@@ -60,7 +61,7 @@
           <input id="signInPassword" name="password" type="password" autocomplete="current-password" required>
         </div>
         <button id="signInButton" class="button primary wide" type="submit">Sign in</button>
-        <button id="forgotPasswordButton" class="text-button wide" type="button">Forgot password?</button>
+        <button id="forgotPasswordButton" class="text-button wide" type="button">First login or forgot password?</button>
         <p class="small muted auth-help">Use the credentials configured for your existing PW Firebase account. If you cannot sign in, request a reset using your RI email address.</p>
         <p id="authError" class="inline-message error hidden" role="alert"></p>
       </form>
@@ -165,16 +166,27 @@
           </div>
         </div>
 
-        <section class="panel">
-          <div class="section-heading"><div><p class="eyebrow">AI analysis</p><h2>Analyse the discussion</h2></div><button id="reloadPromptsButton" class="text-button" type="button">Reload prompts</button></div>
-          <label for="promptSelect">Evaluation prompt</label>
-          <select id="promptSelect" aria-describedby="promptChoiceHelp"><option value="">Select a prompt</option></select>
-          <p id="promptChoiceHelp" class="field-help">The shared default is selected automatically. You can choose any other saved prompt for this analysis.</p>
-          <label for="analysisPrompt">Analysis instructions</label>
-          <textarea id="analysisPrompt" rows="8" placeholder="Choose a saved prompt or enter analysis instructions."></textarea>
-          <button id="runAnalysisButton" class="button primary" type="button">Analyse all questions</button>
+        <section class="panel analysis-workspace">
+          <div class="section-heading"><div><p class="eyebrow">AI-assisted teacher review</p><h2>Analyse the discussion</h2><p class="muted">Receive a structured report for every question, including strengths, gaps, content suggestions and follow-up questions.</p></div><button id="reloadPromptsButton" class="text-button" type="button">Reload prompts</button></div>
+          <aside class="local-data-note" aria-label="Local storage information"><strong>Saved only on this device</strong><span>Completed transcripts and analyses remain in this teacher’s browser. Audio and transcript content is sent to OpenAI only when transcription or analysis is requested; the app does not add it to a central repository.</span></aside>
+          <div class="analysis-config-card">
+            <div class="field-group">
+              <label for="promptSelect">Analysis approach</label>
+              <select id="promptSelect" aria-describedby="promptChoiceHelp"><option value="">Select a prompt</option></select>
+              <p id="promptChoiceHelp" class="field-help">The shared default is selected automatically. You can choose another saved prompt for this report.</p>
+            </div>
+            <details class="instructions-disclosure">
+              <summary>Review or customise the analysis instructions</summary>
+              <label for="analysisPrompt">Analysis instructions</label>
+              <textarea id="analysisPrompt" rows="8" placeholder="Choose a saved prompt or enter analysis instructions."></textarea>
+            </details>
+            <div class="action-wrap analysis-run-actions">
+              <button id="runAnalysisButton" class="button primary" type="button">Create structured analysis</button>
+              <button id="downloadLatestAnalysisButton" class="button secondary hidden" type="button">Download this analysis (.txt)</button>
+            </div>
+          </div>
           <div id="analysisStatus" class="inline-message hidden" aria-live="polite"></div>
-          <article id="analysisResult" class="analysis-result hidden"></article>
+          <div id="analysisResult" class="analysis-results hidden" aria-live="polite"></div>
         </section>
         <button id="newSessionButton" class="button primary" type="button">Start a new session</button>
       </section>

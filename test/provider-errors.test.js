@@ -74,9 +74,18 @@ test('OpenAI adapter handles unavailable providers and bounds transcription and 
   await assert.rejects(() => disabled.analyze({ prompt: 'p', transcript: 't' }), (error) => error.status === 503);
 
   const calls = { transcription: null, analysis: null, file: null };
+  const structuredAnalysis = {
+    summary: 'Evidence-based summary',
+    strengths: ['Clear claim'],
+    improvementAreas: ['Add evidence'],
+    suggestedContentAreas: [{ area: 'Stakeholder impact', whyItMatters: 'Broadens the evaluation', researchDirection: 'Verify effects with local evidence' }],
+    studentFeedback: [{ student: 'Student 0', evidence: 'Made a clear claim', nextStep: 'Support it with a source' }],
+    followUpQuestions: ['What evidence supports this?'],
+    evidenceLimitations: ['Short transcript']
+  };
   const client = {
     audio: { transcriptions: { create: async (input) => { calls.transcription = input; return { text: '  transcript  ' }; } } },
-    responses: { create: async (input) => { calls.analysis = input; return { output_text: '  analysis  ' }; } }
+    responses: { create: async (input) => { calls.analysis = input; return { output_text: JSON.stringify(structuredAnalysis) }; } }
   };
   const service = createOpenAIService(
     { openaiKey: 'synthetic', transcriptionModel: 'gpt-transcribe', analysisModel: 'gpt-5.6-luna' },
@@ -88,11 +97,18 @@ test('OpenAI adapter handles unavailable providers and bounds transcription and 
   assert.equal(calls.transcription.prompt.length, 1000);
 
   const names = Array.from({ length: 20 }, (_, index) => `Student ${index}`);
-  assert.equal(await service.analyze({ prompt: 'Review', transcript: 'Evidence', question: 'Why?', studentNames: names }), 'analysis');
+  assert.deepEqual(await service.analyze({ prompt: 'Review', transcript: 'Evidence', question: 'Why?', studentNames: names }), structuredAnalysis);
   const parsed = JSON.parse(calls.analysis.input);
   assert.equal(parsed.context.knownSpeakers.split(', ').length, 12);
   assert.equal(calls.analysis.reasoning.effort, 'none');
   assert.match(calls.analysis.instructions, /untrustedTranscript/);
+  assert.match(calls.analysis.instructions, /suggest useful content areas/i);
+  assert.equal(calls.analysis.text.format.type, 'json_schema');
+  assert.equal(calls.analysis.text.format.strict, true);
+  assert.ok(calls.analysis.text.format.schema.required.includes('suggestedContentAreas'));
+
+  client.responses.create = async () => ({ output_text: 'not-json' });
+  await assert.rejects(() => service.analyze({ prompt: 'Review', transcript: 'Evidence' }), (error) => error.status === 502);
 });
 
 test('Mongo adapter retries failed connections and enforces quota storage outcomes', async () => {
