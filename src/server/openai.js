@@ -3,12 +3,14 @@
 const OpenAI = require('openai');
 const { toFile } = require('openai');
 
-function createOpenAIService(config) {
-  const client = config.openaiKey ? new OpenAI({ apiKey: config.openaiKey }) : null;
+function createOpenAIService(config, dependencies = {}) {
+  const OpenAIClient = dependencies.OpenAIClient || OpenAI;
+  const toFileFn = dependencies.toFileFn || toFile;
+  const client = dependencies.client || (config.openaiKey ? new OpenAIClient({ apiKey: config.openaiKey }) : null);
 
   async function transcribe({ buffer, mimetype, filename, hints }) {
     if (!client) throw Object.assign(new Error('OpenAI is not configured'), { status: 503 });
-    const file = await toFile(buffer, filename || 'clip.webm', { type: mimetype || 'audio/webm' });
+    const file = await toFileFn(buffer, filename || 'clip.webm', { type: mimetype || 'audio/webm' });
     const response = await client.audio.transcriptions.create({
       file,
       model: config.transcriptionModel,

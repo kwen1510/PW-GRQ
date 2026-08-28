@@ -2,17 +2,18 @@
 
 const { MongoClient, ObjectId } = require('mongodb');
 
-let clientPromise;
-
 function id(value) {
   return ObjectId.isValid(value) ? new ObjectId(value) : value;
 }
 
-function createMongoStore(config) {
+function createMongoStore(config, dependencies = {}) {
+  const MongoClientCtor = dependencies.MongoClientCtor || MongoClient;
+  let clientPromise;
+
   async function db() {
     if (!config.mongoUri) return null;
     if (!clientPromise) {
-      const client = new MongoClient(config.mongoUri, {
+      const client = new MongoClientCtor(config.mongoUri, {
         maxPoolSize: 8,
         minPoolSize: 0,
         serverSelectionTimeoutMS: 8000

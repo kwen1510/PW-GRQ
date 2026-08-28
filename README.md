@@ -26,6 +26,15 @@ npm test
 npm run dev
 ```
 
+Run the deterministic suite and the merged Node/Chromium coverage gate with:
+
+```bash
+npm test
+npm run test:coverage
+```
+
+The coverage command launches a synthetic local browser journey, maps precise Chromium coverage through the production source maps, merges it with explicit all-file Node coverage, writes `coverage/lcov.info` for SonarQube, and fails below 80% lines/statements. Set `CHROME_EXECUTABLE_PATH` when Chrome or Chromium is not installed in a standard macOS location.
+
 Open `http://localhost:3000`. Microphone access works on localhost; a deployed site must use HTTPS.
 
 Useful checks:

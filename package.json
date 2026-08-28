@@ -1,6 +1,6 @@
 {
   "name": "pw-grq",
-  "version": "2.1.9",
+  "version": "2.1.10",
   "private": true,
   "description": "Resilient group interview recording and analysis for teachers",
   "main": "server.js",
@@ -12,7 +12,9 @@
     "dev": "npm run build && node --watch server.js",
     "start": "node server.js",
     "test": "npm run build && node --test",
-    "test:coverage": "npm run build && c8 --reporter=text --reporter=lcov node --test",
+    "test:coverage": "node scripts/run-coverage.mjs",
+    "test:coverage:node": "c8 --all --include=server.js --include=src/server/**/*.js --exclude=test/** --exclude=scripts/** --report-dir=coverage/node --reporter=json node --test",
+    "test:coverage:browser": "node scripts/browser-coverage.mjs",
     "scan:sonar": "node scripts/run-local-sonar.mjs",
     "check": "npm run build && node --check server.js && node --check src/client/app.js && node --check src/client/history.js && node --check src/client/reset-password.js",
     "audit:frontend": "node /Users/etdadmin/.codex/skills/build-primitive-frontends/scripts/audit-frontend.mjs public",
@@ -33,6 +35,11 @@
   "devDependencies": {
     "c8": "^12.0.0",
     "esbuild": "^0.25.11",
-    "fake-indexeddb": "^6.2.4"
+    "fake-indexeddb": "^6.2.4",
+    "istanbul-lib-coverage": "^3.2.2",
+    "istanbul-lib-report": "^3.0.1",
+    "istanbul-reports": "^3.2.0",
+    "playwright-core": "^1.62.1",
+    "v8-to-istanbul": "^9.3.0"
   }
 }

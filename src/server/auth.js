@@ -22,16 +22,18 @@ function authorisedPasswordTeacher(decoded, config) {
   return config.allowedTeacherEmails.includes(email) ? email : '';
 }
 
-function createAuth(config) {
+function createAuth(config, dependencies = {}) {
   const firebaseReady = Boolean(config.firebase.projectId && config.allowedTeacherEmails.length);
   let verifierPromise;
 
   function getVerifier() {
     if (!verifierPromise) {
-      verifierPromise = import('jose').then(({ createRemoteJWKSet, jwtVerify }) => ({
-        keys: createRemoteJWKSet(FIREBASE_JWKS),
-        jwtVerify
-      }));
+      verifierPromise = dependencies.loadVerifier
+        ? Promise.resolve().then(() => dependencies.loadVerifier())
+        : import('jose').then(({ createRemoteJWKSet, jwtVerify }) => ({
+          keys: createRemoteJWKSet(FIREBASE_JWKS),
+          jwtVerify
+        }));
     }
     return verifierPromise;
   }

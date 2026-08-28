@@ -1,11 +1,11 @@
 # Prototype quality report
 
-Date: 2026-08-27  
-Candidate: 2.1.9
+Date: 2026-08-28  
+Candidate: 2.1.10
 
 ## Passing checks
 
-- `npm test`: 19/19 tests pass, including authorization boundaries, API behavior, IndexedDB recovery, final-clip handoff, single-ZIP audio export, punctuation-heavy filename hardening, prompt-administrator denial, recorder rotation, security headers and the custom password-reset page contract.
+- `npm test`: 22/22 tests pass, including authorization boundaries, expired/invalid Firebase sessions, OpenAI payload and failure behavior, MongoDB reconnect and quota failures, API behavior, IndexedDB recovery, final-clip handoff, single-ZIP audio export, prompt-administrator denial, recorder rotation and security headers.
 - `npm run check`: browser bundles and JavaScript syntax pass.
 - `npm run audit:frontend`: no static layout hazards.
 - Responsive browser matrix: no page-level horizontal overflow, missing focus treatment or undersized controls at 320×568, 375×812, 512×384, 768×1024, 1024×768 or 1440×900.
@@ -17,23 +17,25 @@ Candidate: 2.1.9
 - The 2.1.9 custom reset handler asks for and confirms the new password, supports show/hide, preserves the form after a recoverable rejection, labels the retry action clearly and handles expired/invalid links. A mocked Firebase browser test passed the failure-then-retry journey with no horizontal overflow at 320/375/768/1024px.
 - Reduced-motion mode disables recording animation.
 - `npm audit --omit=dev`: 0 known production dependency vulnerabilities.
-- Semgrep 2.1.9 repository-hook scan: 221 applicable JavaScript, Node.js and OWASP rules across 550 targets, with 0 findings. Generated esbuild bundles are excluded while their original modules remain scanned; local credentials, dependencies and coverage output are also excluded.
+- The reproducible Chromium coverage campaign exercises the full local recording journey, failed transcription and retry, final-clip completion, Bluetooth-labelled microphone selection, prompt choice and administration, analysis success/failure, history replay/download/deletion, loading/empty/offline states, Firebase login/reset network errors, and invalid/expired/weak/mismatched/successful reset states. Precise V8 coverage is source-map remapped from esbuild bundles to all eight `src/client` modules and merged with explicit all-file Node coverage.
+- Merged coverage enforces an 80% line and statement threshold and reports 88.49% lines/statements. Sonar's combined line-and-condition calculation reports 86.1% and passes its 80% quality gate.
+- Semgrep 2.1.10 repository-hook scan ran 221 rules across 595 targets with 0 findings. It covers generated Bob evidence and reviewed source while excluding generated esbuild bundles whose original modules remain scanned; local credentials, dependencies and coverage output are also excluded.
 - Gitleaks current-tree scan: 0 leaks, with local credential files and generated dependencies explicitly excluded.
 - OSV Scanner and Trivy: 0 known production dependency vulnerabilities in `package-lock.json`.
 - `vercel build --yes`: successful with the pinned Node.js 22.x runtime.
-- Instrumented Node coverage: 53.2% statements/lines, 69% branches and 62.96% functions.
+- Instrumented merged coverage: 88.49% statements/lines, 69.87% branches and 49.35% functions. Function coverage is distorted downward by esbuild/V8 source-map function boundaries, so the enforced release threshold and Sonar gate use executable lines and conditions.
 
 ## SonarQube status
 
-The final 2026-08-27 SonarQube Community Build analysis completed successfully. It reported 0 open issues, 0 bugs, 0 vulnerabilities, 0 code smells, 0 security hotspots and 0.0% duplicated lines across 2,384 lines of code. An intermediate 2.1.9 analysis found one missing-label accessibility bug on the reset form; an explicit password-manager username label was added and the final analysis verified that the issue was removed.
+The final 2026-08-28 SonarQube Community Build analysis completed successfully. It reported 0 open issues, 0 bugs, 0 vulnerabilities, 0 code smells, 0 security hotspots and 0.0% duplicated lines across 2,389 lines of code.
 
-The quality gate remains failed solely on its coverage condition: Sonar reports 21.8% against an 80% requirement. The browser journeys above exercise substantial client behavior without source instrumentation. The gate was not weakened and coverage was not fabricated; this is a documented prototype test-coverage gap, not an unresolved Sonar issue or hotspot.
+The quality gate passes. Sonar reports 86.1% coverage against the unchanged 80% requirement. The browser journey is instrumented rather than inferred, generated bundles are excluded while their source modules remain measured, and every application JavaScript source file is present in the merged denominator.
 
 The repository workflow accepts a supplied `SONAR_TOKEN`, or can use `SONAR_ADMIN_PASSWORD` to create and revoke a short-lived token. This run used a project-scoped temporary token. The scanner uploaded the analysis successfully; its optional administrator-only hotspot API follow-up returned HTTP 403, so the authenticated local dashboard was used to verify 0 issues and 0 hotspots. The token was revoked immediately afterward and its temporary local file was removed; neither the token nor administrator password is stored in the project.
 
 ## Release status
 
-The 2.1.9 candidate is deployed to `https://pw-grq-zeta.vercel.app` as immutable deployment `dpl_6aH1CbNgf7RDXGvH36xKpbnTjm1e`. The live health endpoint reports OpenAI, MongoDB and Firebase ready with authentication required. The production browser test passed link verification, mismatched-password validation, password visibility, Firebase rejection recovery, successful retry and 320/375/768/1024px responsive layouts. Firebase calls were intercepted, so the test changed no real password. Unauthenticated access remains protected by the existing bearer-token boundary.
+The previous 2.1.9 candidate remains deployed at `https://pw-grq-zeta.vercel.app` as immutable deployment `dpl_6aH1CbNgf7RDXGvH36xKpbnTjm1e`. The 2.1.10 immutable deployment identity and production checks will replace this paragraph after release.
 
 Firebase currently rejects both email-template and action-URL saves with “Email template updates are currently unavailable for this project.” Consequently, the custom reset handler is implemented and tested but Firebase-generated emails will continue to use Firebase's default sender, wording and hosted reset page until a project owner or Firebase Support enables template updates and sets the action URL to `https://pw-grq-zeta.vercel.app/reset-password.html`. No live template change is claimed.
 
